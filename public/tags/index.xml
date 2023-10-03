@@ -2,35 +2,89 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on The Gauntlet: An R Blog</title>
-    <link>/tags/</link>
+    <link>https://mikegaunt404.netlify.app/tags/</link>
     <description>Recent content in Tags on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Dec 2020 21:13:14 -0500</lastBuildDate><atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 02 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>programming</title>
+      <link>https://mikegaunt404.netlify.app/tags/programming/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/programming/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>purrr</title>
+      <link>https://mikegaunt404.netlify.app/tags/purrr/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/purrr/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>vectorization</title>
+      <link>https://mikegaunt404.netlify.app/tags/vectorization/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/vectorization/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>interactive</title>
+      <link>https://mikegaunt404.netlify.app/tags/interactive/</link>
+      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/interactive/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>plotly</title>
+      <link>https://mikegaunt404.netlify.app/tags/plotly/</link>
+      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/plotly/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rmarkdown</title>
+      <link>https://mikegaunt404.netlify.app/tags/rmarkdown/</link>
+      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/rmarkdown/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>plot</title>
-      <link>/tags/plot/</link>
+      <link>https://mikegaunt404.netlify.app/tags/plot/</link>
       <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
       
-      <guid>/tags/plot/</guid>
+      <guid>https://mikegaunt404.netlify.app/tags/plot/</guid>
       <description></description>
     </item>
     
     <item>
       <title>R Markdown</title>
-      <link>/tags/r-markdown/</link>
+      <link>https://mikegaunt404.netlify.app/tags/r-markdown/</link>
       <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
       
-      <guid>/tags/r-markdown/</guid>
+      <guid>https://mikegaunt404.netlify.app/tags/r-markdown/</guid>
       <description></description>
     </item>
     
     <item>
       <title>regression</title>
-      <link>/tags/regression/</link>
+      <link>https://mikegaunt404.netlify.app/tags/regression/</link>
       <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
       
-      <guid>/tags/regression/</guid>
+      <guid>https://mikegaunt404.netlify.app/tags/regression/</guid>
       <description></description>
     </item>
     

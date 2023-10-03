@@ -2,17 +2,35 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on The Gauntlet: An R Blog</title>
-    <link>/categories/</link>
+    <link>https://mikegaunt404.netlify.app/categories/</link>
     <description>Recent content in Categories on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Dec 2020 21:13:14 -0500</lastBuildDate><atom:link href="/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 02 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Programming</title>
+      <link>https://mikegaunt404.netlify.app/categories/programming/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/categories/programming/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>R</title>
-      <link>/categories/r/</link>
-      <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
+      <link>https://mikegaunt404.netlify.app/categories/r/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
       
-      <guid>/categories/r/</guid>
+      <guid>https://mikegaunt404.netlify.app/categories/r/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Visualizations</title>
+      <link>https://mikegaunt404.netlify.app/categories/visualizations/</link>
+      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/categories/visualizations/</guid>
       <description></description>
     </item>
     

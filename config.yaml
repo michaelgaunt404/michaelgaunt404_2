@@ -1,4 +1,4 @@
-baseurl: /
+baseurl: https://mikegaunt404.netlify.app/
 languageCode: en-us
 title: "The Gauntlet: An R Blog"
 theme: "hugo-theme-stack"

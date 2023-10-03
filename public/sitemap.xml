@@ -2,40 +2,70 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/categories/</loc>
+    <loc>https://mikegaunt404.netlify.app/categories/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/post/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/programming/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/programming/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/purrr/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/r/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/vectorization/</loc>
+    <lastmod>2023-10-02T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/2021/09/11/client-side-plot-interactivity/</loc>
+    <lastmod>2021-09-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/interactive/</loc>
+    <lastmod>2021-09-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/plotly/</loc>
+    <lastmod>2021-09-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/rmarkdown/</loc>
+    <lastmod>2021-09-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/visualizations/</loc>
+    <lastmod>2021-09-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/2020/12/01/hello-r-markdown/</loc>
     <lastmod>2020-12-01T21:13:14-05:00</lastmod>
   </url><url>
-    <loc>/2020/12/01/hello-r-markdown/</loc>
+    <loc>https://mikegaunt404.netlify.app/tags/plot/</loc>
     <lastmod>2020-12-01T21:13:14-05:00</lastmod>
   </url><url>
-    <loc>/tags/plot/</loc>
+    <loc>https://mikegaunt404.netlify.app/tags/r-markdown/</loc>
     <lastmod>2020-12-01T21:13:14-05:00</lastmod>
   </url><url>
-    <loc>/post/</loc>
+    <loc>https://mikegaunt404.netlify.app/tags/regression/</loc>
     <lastmod>2020-12-01T21:13:14-05:00</lastmod>
   </url><url>
-    <loc>/categories/r/</loc>
-    <lastmod>2020-12-01T21:13:14-05:00</lastmod>
-  </url><url>
-    <loc>/tags/r-markdown/</loc>
-    <lastmod>2020-12-01T21:13:14-05:00</lastmod>
-  </url><url>
-    <loc>/tags/regression/</loc>
-    <lastmod>2020-12-01T21:13:14-05:00</lastmod>
-  </url><url>
-    <loc>/tags/</loc>
-    <lastmod>2020-12-01T21:13:14-05:00</lastmod>
-  </url><url>
-    <loc>/</loc>
-    <lastmod>2020-12-01T21:13:14-05:00</lastmod>
-  </url><url>
-    <loc>/2016/12/30/a-plain-markdown-post/</loc>
+    <loc>https://mikegaunt404.netlify.app/2016/12/30/a-plain-markdown-post/</loc>
     <lastmod>2016-12-30T21:49:57-07:00</lastmod>
   </url><url>
-    <loc>/about/</loc>
+    <loc>https://mikegaunt404.netlify.app/about/</loc>
     <lastmod>2016-05-05T21:48:51-07:00</lastmod>
   </url><url>
-    <loc>/2015/01/01/lorem-ipsum/</loc>
+    <loc>https://mikegaunt404.netlify.app/2015/01/01/lorem-ipsum/</loc>
     <lastmod>2015-01-01T13:09:13-06:00</lastmod>
   </url>
 </urlset>

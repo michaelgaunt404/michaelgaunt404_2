@@ -2,17 +2,37 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on The Gauntlet: An R Blog</title>
-    <link>/post/</link>
+    <link>https://mikegaunt404.netlify.app/post/</link>
     <description>Recent content in Posts on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Dec 2020 21:13:14 -0500</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 02 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Clean that Code up with purrr</title>
+      <link>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</guid>
+      <description>This blog serves as a brief tutorial on how to utilize the purrr package by our studio to streamline and simplify complex or repetitive sections of code.
+BackgroundOne major advantage of working with us is the ability to leverage the power of the Tidyverse R package environment. This package environment, developed by RStudio, is designed to enhance the usability of R.
+An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R.</description>
+    </item>
+    
+    <item>
+      <title>Client-Side Interactivite Visulations</title>
+      <link>https://mikegaunt404.netlify.app/2021/09/11/client-side-plot-interactivity/</link>
+      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2021/09/11/client-side-plot-interactivity/</guid>
+      <description>I love creating visualizations in R 💹, its one of the first things that I do when exploring a new data set. One of the problems that I usually run into during an analysis is that I end up with a huge amount of plots…… mid-analysis I get slowed down having to sift through throngs of plots that I’ve created. This is usually brought on for a number of reasons:</description>
+    </item>
+    
     <item>
       <title>Hello R Markdown</title>
-      <link>/2020/12/01/hello-r-markdown/</link>
+      <link>https://mikegaunt404.netlify.app/2020/12/01/hello-r-markdown/</link>
       <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
       
-      <guid>/2020/12/01/hello-r-markdown/</guid>
+      <guid>https://mikegaunt404.netlify.app/2020/12/01/hello-r-markdown/</guid>
       <description>R MarkdownThis is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
 You can embed an R code chunk like this:
 summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
@@ -20,20 +40,20 @@ summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 2
     
     <item>
       <title>A Plain Markdown Post</title>
-      <link>/2016/12/30/a-plain-markdown-post/</link>
+      <link>https://mikegaunt404.netlify.app/2016/12/30/a-plain-markdown-post/</link>
       <pubDate>Fri, 30 Dec 2016 21:49:57 -0700</pubDate>
       
-      <guid>/2016/12/30/a-plain-markdown-post/</guid>
+      <guid>https://mikegaunt404.netlify.app/2016/12/30/a-plain-markdown-post/</guid>
       <description>This is a post written in plain Markdown (*.md) instead of R Markdown (*.Rmd). The major differences are:
  You cannot run any R code in a plain Markdown document, whereas in an R Markdown document, you can embed R code chunks (```{r}); A plain Markdown post is rendered through Blackfriday, and an R Markdown document is compiled by rmarkdown and Pandoc.  There are many differences in syntax between Blackfriday&amp;rsquo;s Markdown and Pandoc&amp;rsquo;s Markdown.</description>
     </item>
     
     <item>
       <title>Lorem Ipsum</title>
-      <link>/2015/01/01/lorem-ipsum/</link>
+      <link>https://mikegaunt404.netlify.app/2015/01/01/lorem-ipsum/</link>
       <pubDate>Thu, 01 Jan 2015 13:09:13 -0600</pubDate>
       
-      <guid>/2015/01/01/lorem-ipsum/</guid>
+      <guid>https://mikegaunt404.netlify.app/2015/01/01/lorem-ipsum/</guid>
       <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</description>
     </item>
     

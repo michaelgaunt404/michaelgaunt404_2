@@ -1,0 +1,368 @@
+---
+title: Client-Side Interactivite Visulations
+author: 'Mike Gaunt'
+date: '2021-09-11'
+slug: client-side-plot-interactivity
+categories: ["R", "Visualizations"]
+tags: ["rmarkdown", "plotly", "interactive"]
+description: "Creating interactive visulatiations without needing a server to share with your colleages or clients."
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, message = FALSE, 
+                      echo = FALSE, dpi = 300, cache.lazy = FALSE,
+                      tidy = "styler", fig.width = 3, fig.height = 1)
+```
+
+<!--#library set-up=============================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev -->
+```{r}
+library(tidyverse)
+library(plotly)
+library(mlbench)
+library(roll)
+```
+
+<!--#source helpers/utilities===================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev -->
+```{r}
+make_plotly_buttons = function(list, pos = 0){
+  list %>%
+    map(~list(method = "restyle",
+              args = list(str_glue("transforms[{pos}].value"),
+                          .x),
+              label = .x))
+}
+
+make_menu_item = function(active = -1, type = 'dropdown', direction = "down", x= 0, y = 0,
+                          xanchor = 'left', yanchor = "top", name_list, filter_pos = 0){
+  list(
+    list(
+      active = 0, type = type, direction = direction,
+      xanchor = xanchor, yanchor = yanchor, x = x, y= y,
+      buttons = make_plotly_buttons(list = name_list, pos = filter_pos))
+  )
+}
+
+floor_divide = function(value, floor){
+  (value %/% floor)*floor
+}
+```
+
+<!--#source data================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev 
+#area to upload data with and to perform initial munging
+#please add test data here so that others may use/unit test these scripts -->
+```{r}
+# data(BostonHousing)
+# 
+# BostonHousing = BostonHousing %>%  
+#   mutate(age = floor_divide(age, 25) %>% 
+#            as.factor())
+```
+
+
+<!--#SECTION NAME===============================================================
+#use this header to make demarcations/section in code [delete this line]
+#short description -->
+
+<!-- ![](title_pic.png) -->
+
+I love creating visualizations in R `r emo::ji("chart")`, its one of the first things that I do when exploring a new data set. One of the problems that I usually run into during an analysis is that I end up with a huge amount of plots...... mid-analysis I get slowed down having to sift through throngs of plots that I've created. This is usually brought on for a number of reasons: 
+
++ data/plot hoarding due to FOMO (fear of missing out)
++ tracking my analysis progress via plots I've created
++ plotting different combinations of variables
++ making changes to particular variables and plotting them 
+
+I've found that producing interactive plots where you can quickly run through different variable arrangements solve this issue by reducing the number plots that I have to code. However, making interactive plots can be difficult in it's own right and can make it difficult to share your work. In my experience if you want interactivity you will need to produce some sort of application that runs on Shiny and requires a server.  
+
+Plotly soundly meets and solves a lot of the issues stated above - it can provide many more benefits beyond what `plotly::ggplotly()` can do and doesn't require server-side processing. The rest of this blog post will show you how to make and deploy interactive, client-side plots that do not rely upon developing a shiny dashboard or applications.
+
+I'll show you where we are going with this now, below is a plot generated via Plotly that has a drop down filter - normally this would require a server:
+```{r}
+BostonHousing %>% 
+  plot_ly(x = ~rm, y = ~dis, text = ~text, color = ~medv,
+          type = 'scatter', mode = "markers",
+          transforms = list(
+            list(type = 'filter', target = ~age, operation = '=',
+                 value = unique(BostonHousing$age)[1]
+            )
+          )) %>%
+  layout(xaxis = list(title = "RM"),
+         yaxis = list(title = "Dis"),
+         updatemenus =
+             make_menu_item(name_list = unique(BostonHousing$age), filter_pos = 0,
+                            direction = "right", x = 0, y = 1.1),
+         showlegend = FALSE)
+```
+
+## Getting Familiar with Plotly
+
+If you're anything like me, you are most familiar with Plotly through the following code:
+
+```{r echo=TRUE}
+plot1 = mtcars %>%
+  ggplot(aes(mpg, disp, color = hp)) + 
+  geom_point()
+
+ggplotly(plot1)
+```
+
+OMG perfect, its so great! We gain a bit of extra interactivity barely any cost. You can now manipulate the plot area with zoom and drag features and get data attributes with hover-over capability but that's about it.
+
+I relied on this workflow for a long time due to its simplicity and to be quite honest I was a bit afraid of the ploty syntax. The above example is reproduced below using plotly: 
+
+```{r eval=FALSE, echo=TRUE}
+mtcars %>% 
+  plot_ly(x = ~mpg, y = ~disp, color = ~hp,
+          type = "scatter", mode = 'markers')
+```
+
+Not too complicated but this is a very simple example. The plotly syntax begins to hurt my brain when I need to start changing colors, labels, axis attributes, etc which is so easily done in ggplot. Plotly has a heavy reliance on lists to pass arguments to make a plot, I find lists can be confusing to work with and a hard barrier to overcome - nested lists in nested lists inside nested lists..... you get it. You will still have to use the list-based plotly syntax but the benefits you get in return heavily outweigh the learning curve struggles.
+
+## Into the Trenches
+
+As alluded to above, you may want client-side plots for a number of reasons:
+
++ plotting combinations of variables without coding every plot
++ developing visualizations that will make it eventually into a Shiny but you don't want a write a whole Shiny 
+ - especially during early development!
++ sharing work with others but again, its too early for an entire Shiny workflow
+
+But what is client-side processing? To be honest, I only learned about this recently but effectively it means `generating something (a plot in this case) on your own computer instead of needing a server`. In an R context that means no shiny and in a business application that means not having to make a shiny to share interactive R objects.  
+
+So let's do it! We will need some convenience functions to help us out and some data to plot.
+```{r eval = FALSE, echo=TRUE}
+make_menu_item = function(active = -1, type = 'dropdown', direction = "down", x= 0, y = 0,
+                          xanchor = 'left', yanchor = "top", name_list, filter_pos = 0){
+  list(
+    list(
+      active = 0, type = type, direction = direction,
+      xanchor = xanchor, yanchor = yanchor, x = x, y= y,
+      buttons = make_plotly_buttons(list = name_list, pos = filter_pos))
+  )
+}
+
+make_range_select_buttons = function(ttl, month, step, stepmode){
+  list(title = ttl,
+       rangeselector = list(
+         buttons =
+           list(month, step, stepmode) %>%
+           pmap(function(month, step, stepmode)
+             list(
+               count = month,
+               label = as.character(str_glue("{month} mo"),
+                                    step = step,
+                                    stepmode = stepmode))) %>%
+           append(list(list(step = "all")))
+       )
+  )
+}
+
+make_plotly_buttons = function(list, pos = 0){
+  list %>%
+    map(~list(method = "restyle",
+              args = list(str_glue("transforms[{pos}].value"),
+                          .x),
+              label = .x))
+}
+
+data(BostonHousing)
+
+BostonHousing = BostonHousing %>%  
+  mutate(age = floor_divide(age, 20) %>% 
+           as.factor())
+
+
+```
+
+### Adding Filters
+
+Making a plot with a filter is very simple - whether making a plot with one or multiple filters, you will have to perfrom the same two operations: 
+
++ add a transformation to the `plot_ly()` function
++ update the menu input in the `layout()` function
+
+The below code produces a plot that can be filtered by age category.
+```{r echo=TRUE}
+BostonHousing %>% 
+  plot_ly(x = ~rm, y = ~dis, text = ~text, color = ~medv,
+          type = 'scatter', mode = "markers",
+          transforms = list(
+            list(type = 'filter', target = ~age, operation = '=',
+                 value = unique(BostonHousing$age)[1]
+            )
+          )) %>%
+  layout(xaxis = list(title = "RM"),
+         yaxis = list(title = "Dis"),
+         updatemenus =
+             make_menu_item(name_list = unique(BostonHousing$age), filter_pos = 0,
+                            direction = "right", x = 0, y = 1.1),
+         showlegend = FALSE)
+```
+
+You can add as many filters as you want. Notice how many list functions I have to use.
+
+```{r echo=TRUE}
+BostonHousing %>% 
+  plot_ly(x = ~rm, y = ~dis, text = ~text, color = ~medv,
+          type = 'scatter', mode = "markers",
+          transforms = list(
+            list(type = 'filter', target = ~age, operation = '=',
+                 value = unique(BostonHousing$age)[1]),
+            list(type = 'filter', target = ~rad, operation = '=',
+                 value = unique(BostonHousing$rad)[1]
+            )
+          )) %>%
+  layout(xaxis = list(title = "RM"),
+         yaxis = list(title = "Dis"),
+         updatemenus =
+           list(
+             make_menu_item(name_list = unique(BostonHousing$age), filter_pos = 0,
+                            direction = "right", x = 0, y = 1.1)[[1]],
+             make_menu_item(name_list = unique(BostonHousing$rad), filter_pos = 1,
+                            direction = "right", x = 0, y = 1.175)[[1]]
+           ),
+         showlegend = FALSE)
+```
+
+A few drawbacks and things to remember: 
+
++ you have to code a variable three different times to create a filter
+  - 2X in the each variable list in the _transfroms_ input eg `~age` and `BostonHousing$age`
+  - 1X in the `make_menu_item()` function eg `BostonHousing$age`
++ the filter locations can be frigidity, you'll have to play around with them bit through trial and error
+  - I left them as is in the above example to show how their alignment can be weird
++ the _updatemenus_ input structurally changes b/w a single or multiple inputs 
+  - notice a each `make_menu_item()` is subsetted with `[[1]]` - that removes it the list around it and then it they are relisted together
++ you also have to be mindful of the position or order of each filter which you have to correctly input for the _filter_pos_ input in `make_menu_item()`
++ stacking multiple filters effectively subsets your data - sometimes a subset will not produce any data and it can be weird to see initially
+
+### Preset Time Filtering
+
+Again, we define a new function that will help us out as well as make some fake data. 
+
+```{r}
+# mock_timeseries = data.frame(mock_date = seq(lubridate::as_date("2020-06-12"), lubridate::as_date(Sys.Date()), by = 1)) %>% 
+#   mutate(var1 = runif(459, 5, 8),
+#          var2 = runif(459, 10, 20),
+#          var3 = runif(459, 0, 25)) %>%  
+#   mutate(`SMA(var1, 7)` = roll_mean(var1, 7),
+#          `SMA(var2, 21)` = roll_mean(var2, 21)) %>% 
+#   pivot_longer(cols = starts_with("var"), 
+#                names_to = "cat", names_transform = list(cat = as.factor))
+
+mock_timeseries = data.frame(mock_date = seq(lubridate::as_date("2020-06-12"), lubridate::as_date("2021-09-13"), by = 1)) %>% 
+  mutate(var1 = runif(459, 5, 8),
+         var2 = runif(459, 10, 20),
+         var3 = runif(459, 0, 25)) %>%  
+  pivot_longer(cols = starts_with("var"), 
+               names_to = "cat", names_transform = list(cat = as.factor)) %>% 
+  group_by(cat) %>% 
+  mutate(`SMA(value, 7)` = roll_mean(value, 7),
+         `SMA(value, 21)` = roll_mean(value, 21)) 
+```
+
+```{r}
+make_range_select_buttons = function(ttl, month, step, stepmode){
+  list(title = ttl,
+       rangeselector = list(
+         buttons =
+           list(month, step, stepmode) %>%
+           pmap(function(month, step, stepmode)
+             list(
+               count = month,
+               label = as.character(str_glue("{month} mo"),
+                                    step = step,
+                                    stepmode = stepmode))) %>%
+           append(list(list(step = "all")))
+       )
+  )
+}
+```
+
+```{r}
+mock_timeseries %>%
+  plot_ly(x = ~mock_date, y = ~cat, z = ~value, 
+          type = "heatmap") %>%
+  layout(xaxis = make_range_select_buttons(
+    "Trip Date",
+    c(1, 3, 6, 12),
+    rep("month", 4),
+    rep("backward", 4)
+    # ,
+    # slider = T
+  ),
+  yaxis = list(title = "Queired Date"),
+  showlegend = FALSE)
+```
+
+```{r}
+mock_timeseries %>%
+  plot_ly(x = ~mock_date, y = ~value, color = ~cat,
+          type = "scatter", mode = "lines") %>%
+  layout(
+    xaxis = make_range_select_buttons("Mock Date", c(1, 3, 6, 12),
+                                      rep("month", 4), rep("backward", 4)
+                                      # ,
+                                      # slider = F
+                                      )
+  )
+  
+```
+
+```{r}
+mock_timeseries %>%
+  # plot_ly(x = ~mock_date, y = ~value, color = ~cat,
+  #         type = "scatter", mode = "lines") %>%
+  plot_ly(type = 'scatter', mode = 'lines') %>%
+  add_lines(x=~mock_date, y=~value, color = ~cat) %>%
+  add_lines(x=~mock_date, y=~`SMA(value, 7)`, color = ~cat, name= "SMA(value, 7)") %>%
+  add_lines(x=~mock_date, y=~`SMA(value, 21)`, color = ~cat, name= "SMA(value, 21)") %>% 
+  layout(
+    updatemenus <- list(
+      list(
+        active = "Reset",
+        type= 'dropdown',
+        title = "base",
+        direction = "down",
+        xanchor = 'left',
+        yanchor = "top",
+        buttons = list(
+          list(
+            label = "SMA(count, 7)",
+            method = "update",
+            args = list(list(visible = c(FALSE, TRUE, TRUE, FALSE)))),
+          list(
+            label = "SMA(count, 21)",
+            method = "update",
+            args = list(list(visible = c(FALSE, TRUE, FALSE, TRUE)))),
+          list(
+            label = "All",
+            method = "update",
+            args = list(list(visible = c(TRUE, TRUE, TRUE, TRUE)))),
+          list(
+            label = "Reset",
+            method = "update",
+            args = list(list(visible = c(FALSE, TRUE, FALSE, FALSE)))))
+      )
+    )
+  )
+```
+
+
+
+
+
+
+

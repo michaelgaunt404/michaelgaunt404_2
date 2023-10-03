@@ -1,0 +1,402 @@
+---
+title: "Clean that Code up with purrr"
+author: "Mike Gaunt"
+date: "2023-10-02"
+output:
+  html_document:
+    df_print: paged
+categories:
+- R
+- Programming
+tags:
+- purrr
+- vectorization
+- programming
+description: Efficient programming using vectorization and the tidyverse.
+image: null
+math: null
+license: null
+hidden: no
+comments: yes
+slug: "purrr-correlation-plots"
+---
+
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index_files/plotly-binding/plotly.js"></script>
+<script src="{{< blogdown/postref >}}index_files/typedarray/typedarray.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/jquery/jquery.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/crosstalk/css/crosstalk.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/crosstalk/js/crosstalk.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/plotly-main/plotly-latest.min.js"></script>
+
+
+<p>This blog serves as a brief tutorial on how to utilize the <code>purrr</code> package by our studio to streamline and simplify complex or repetitive sections of code.</p>
+<div id="background" class="section level1">
+<h1>Background</h1>
+<p>One major advantage of working with us is the ability to leverage the power of the Tidyverse R package environment. This package environment, developed by RStudio, is designed to enhance the usability of R.</p>
+<p>An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R. <code>purrr</code> is one of these packages aimed at:</p>
+<blockquote>
+<center>
+enhancing R’s functional programming (FP) toolkit by providing a complete and consistent set of tools for working with functions and vectors.
+</center>
+</blockquote>
+<p>If this is your first encounter with vectorization in R, don’t worry. In essence, it’s a faster alternative to for loops. It involves iteratively providing a function with data and applying that function repeatedly to various subsets of the data. This concept is similar to using <code>apply</code>, <code>lapply</code>, or <code>sapply</code> in base R.</p>
+</div>
+<div id="tutorial-data" class="section level1">
+<h1>Tutorial Data</h1>
+<p>The data we will use in this tutorial is a data frame that records the travel times of buses for specific sections along a bus route.</p>
+<ul>
+<li><code>trip_id</code>: Records a unique trip sequence, which we will not use for this tutorial.</li>
+<li><code>direction_id</code>: Indicates the direction the bus is heading.</li>
+<li><code>route_id</code>, <code>date_time</code>, and <code>vehicle_id</code>: Not used in this tutorial.</li>
+<li><code>segment</code>, <code>segment_name</code>, and <code>segment_type</code>: Attributes that describe the segment the bus is currently traveling over.</li>
+<li><code>time_diff</code>: Records the segment travel time - what we are investigating.</li>
+<li><code>flag_peak</code>: Indicates the time of day.</li>
+<li><code>time_diff_pct</code>: A calculated attribute indicating what percentage of an individual travel time segment is in proportion to a bus’s total route travel time - also what we are investigating.</li>
+</ul>
+<p>Take a look:</p>
+<pre><code>##                                            trip_id direction_id route_id
+## 1 10906003__MCOB-DO:171:5:Saturday:1:23MAR:41004:6  south_bound      202
+## 2 10906003__MCOB-DO:171:5:Saturday:1:23MAR:41004:6  south_bound      202
+## 3 10906003__MCOB-DO:171:5:Saturday:1:23MAR:41004:6  south_bound      202
+## 4 10906003__MCOB-DO:171:5:Saturday:1:23MAR:41004:6  south_bound      202
+## 5 10906003__MCOB-DO:171:5:Saturday:1:23MAR:41004:6  south_bound      202
+## 6 10906003__MCOB-DO:171:5:Saturday:1:23MAR:41004:6  south_bound      202
+##             date_time vehicle_id segement segement_name segement_type time_diff
+## 1 2023-05-20 06:25:40      15106  459_712  Hewitt_100th       end_end      1082
+## 2 2023-05-20 06:25:40      15106  482_459   23rd_Hewitt    middle_end       150
+## 3 2023-05-20 06:23:10      15106  497_482     18th_23rd middle_middle        60
+## 4 2023-05-20 06:21:39      15106  537_509     ramp_14th middle_middle       120
+## 5 2023-05-20 06:19:39      15106  636_537      4th_ramp middle_middle       240
+## 6 2023-05-20 06:15:39      15106  657_636     grove_4th middle_middle       180
+##     ttl_diff speed_avg flag_peak time_diff_pct
+## 1 12306.4810  25.44252    AMPeak    1.00000000
+## 2  1018.9276  15.19517    AMPeak    0.13863216
+## 3   961.5845  35.85005    AMPeak    0.05545287
+## 4  1433.0578  26.71382    AMPeak    0.11090573
+## 5  4793.1265  44.67465    AMPeak    0.22181146
+## 6  1096.5308  13.62705    AMPeak    0.16635860</code></pre>
+<p>Since we are only concerned with travel time given the time-of-day and direction of travel, any attribute describing a unique bus, route, trip id, or timestamp when the measurement was recorded will be aggregated away.</p>
+</div>
+<div id="tutorial-packages" class="section level1">
+<h1>Tutorial Packages</h1>
+<p>The chunk below shows which packages will be using for this tutorial.</p>
+<p>I suggest doing the</p>
+<pre class="r"><code>require(tidyverse) # entire tidyverse package suite - including purrr, dplyr, ggplot, etc
+require(magrittr) # for code piping
+require(lubridate) # for working with dates and datetimes</code></pre>
+</div>
+<div id="tutorial" class="section level1">
+<h1>Tutorial</h1>
+<p>To address our problem statement, we have chosen to investigate how each segment’s travel time correlates with one another, along with the total route travel time.</p>
+<p>In essence, we aim to create a correlation matrix using the <code>stats::cor()</code> function, considering the time of day and direction of travel as factors in our analysis. And to top it all off, we want to interact with these correlation matrices via a visualization.</p>
+<p>So first we apply some initial data processing to have our base working data.</p>
+<pre class="r"><code>data_processed &lt;- data %&gt;%
+  # filter(segement_name != &quot;Hewitt_100th&quot;) %&gt;%
+  filter(wday(date_time) %in% c(3, 4, 5)) %&gt;% # grab only T, W, and TR
+  pivot_wider(
+    id_cols = c(&quot;trip_id&quot;, &quot;direction_id&quot;, &quot;route_id&quot;, &quot;vehicle_id&quot;, &quot;flag_peak&quot;),
+    names_from = &quot;segement_name&quot;,
+    values_from = &quot;time_diff_pct&quot;
+  ) # convert from long to wide - data</code></pre>
+<div id="common-pitfalls" class="section level2">
+<h2>Common Pitfalls</h2>
+<p>Typically, individuals create separate data frame objects for various combinations of analysis factors.</p>
+<p>In our case, we have two factors for:</p>
+<ul>
+<li><code>time of day</code>: AM and PM Peak</li>
+<li><code>direction of travel</code>: Southbound and Northbound</li>
+</ul>
+<p>This results in four distinct factor combinations for our correlation matrices.</p>
+<p>As seen below:</p>
+<pre class="r"><code>cor_am_nb &lt;- data_processed %&gt;%
+  filter(flag_peak == &quot;AMPeak&quot;) %&gt;%
+  filter(direction_id != &quot;south_bound&quot;) %&gt;%
+  select(!trip_id:flag_peak) %&gt;%
+  cor(use = &quot;pairwise.complete.obs&quot;)
+
+cor_am_sb &lt;- data_processed %&gt;%
+  filter(flag_peak == &quot;AMPeak&quot;) %&gt;%
+  filter(direction_id != &quot;south_bound&quot;) %&gt;%
+  select(!trip_id:flag_peak) %&gt;%
+  cor(use = &quot;pairwise.complete.obs&quot;)
+
+cor_pm_nb &lt;- data_processed %&gt;%
+  filter(flag_peak == &quot;AMPeak&quot;) %&gt;%
+  filter(direction_id != &quot;south_bound&quot;) %&gt;%
+  select(!trip_id:flag_peak) %&gt;%
+  cor(use = &quot;pairwise.complete.obs&quot;)
+
+cor_pm_sb &lt;- data_processed %&gt;%
+  filter(flag_peak == &quot;AMPeak&quot;) %&gt;%
+  filter(direction_id != &quot;south_bound&quot;) %&gt;%
+  select(!trip_id:flag_peak) %&gt;%
+  cor(use = &quot;pairwise.complete.obs&quot;)</code></pre>
+<p>And then run each data frame object through a ggplot code snippet or some other plotting function….</p>
+<p>Again, resulting in the creation of an additional four objects as outlined below:</p>
+<pre class="r"><code>cor_pm_sb_plot &lt;- cor_pm_sb %&gt;%
+  corrplot::corrplot(
+    diag = T, type = &quot;lower&quot;, method = &quot;color&quot;,
+    order = &quot;hclust&quot;
+  )
+
+cor_am_sb_plot &lt;- cor_am_sb %&gt;%
+  corrplot::corrplot(
+    diag = F, type = &quot;lower&quot;, method = &quot;color&quot;,
+    order = &quot;hclust&quot;
+  )
+
+# you get the idea</code></pre>
+<p>So what’s the matter with this workflow….. a few things.</p>
+<p>Firstly, to create four plots, we end up with eight different data objects to manage. Handling such a large number of objects in your script can become unwieldy. Moreover, each object involves multiple filter statements and inputs that need precise copying and adjustments, leading to complex and cluttered code that can hinder your analysis.</p>
+<p>These problems become more pronounced when dealing with large datasets, numerous factor combinations, or comparing data objects created with different function inputs.</p>
+<p>A comment on for-loops:</p>
+<p>For loops may be the first solution to come to your mind, and they’re not a bad option. However, when coding in R, they introduce additional issues, including the following advantages of vectorization:”</p>
+<ul>
+<li>Clarity &amp; Readability: Vectorization offers concise and readable code.</li>
+<li>Performance: Vectorized operations are often faster, especially for large datasets.</li>
+<li>Tidyverse Integration: Seamless integration with Tidyverse tools.</li>
+<li>Parallel Processing: Potential for efficient multi-core processing.</li>
+<li>Fewer Bugs: Reduced likelihood of off-by-one errors.</li>
+<li>Ease of Debugging: Simplified debugging process.</li>
+<li>Functional Programming: Aligns with R’s functional programming paradigm.</li>
+<li>Efficient Memory Usage: Minimizes unnecessary object creation.</li>
+<li>Consistency: Ensures uniform behavior across data types.</li>
+</ul>
+</div>
+<div id="the-optimal-solution" class="section level2">
+<h2>The Optimal Solution</h2>
+<p>How can we improve this by using R specific solutions? We aim for robust, clean, easily interpretable, and concise code. To achieve this, we’ll utilize the <code>nest()</code> and <code>map()</code> functions from the <code>purrr</code> package.</p>
+<ul>
+<li><code>nest()</code> creates a list-column of data frames, given specified grouping columns. It’s essentially a summarizing operation where you get one row for each group defined by non-nested columns.</li>
+<li><code>map()</code> is then used to apply functions to the list-column object</li>
+</ul>
+</div>
+<div id="step-1" class="section level2">
+<h2>### Step 1</h2>
+<p>Define grouping variables and then nest the dataframe to a tibble.</p>
+<pre class="r"><code>data_processed_nest &lt;- data_processed %&gt;%
+  group_by(flag_peak, direction_id) %&gt;%
+  nest()</code></pre>
+<p>Notice how each record is a unique <code>direction-time</code> pair and all of the other data has been compressed into a list-column representing the time travel segments given the direction and time they are for.</p>
+<pre class="r"><code>print(data_processed_nest)</code></pre>
+<pre><code>## # A tibble: 4 x 3
+## # Groups:   flag_peak, direction_id [4]
+##   direction_id flag_peak data              
+##   &lt;chr&gt;        &lt;chr&gt;     &lt;list&gt;            
+## 1 north_bound  AMPeak    &lt;tibble [18 x 11]&gt;
+## 2 south_bound  AMPeak    &lt;tibble [21 x 11]&gt;
+## 3 south_bound  PMPeak    &lt;tibble [28 x 11]&gt;
+## 4 north_bound  PMPeak    &lt;tibble [28 x 11]&gt;</code></pre>
+<p>You can actually see that there are a few more records in bout the PM peak subsets than in the AM.</p>
+</div>
+<div id="step-2" class="section level2">
+<h2>### Step 2</h2>
+<p>Apply a <code>function</code> to the subsetted data and make a new column that holds the ensuing objects….</p>
+<p>In this case, the function is all the code that falls between the curly <code>{...}</code> braces.</p>
+<p>The <code>.x</code> represents the each subset of data that is held in the <code>data</code>column - it is like a <code>lambda</code> function in python.</p>
+<pre class="r"><code>data_processed_nest_1 &lt;- data_processed_nest %&gt;%
+  mutate(cor = map(
+    data,
+    ~ {
+      .x %&gt;%
+        select(!c(trip_id:vehicle_id)) %&gt;%
+        cor(use = &quot;pairwise.complete.obs&quot;) %&gt;%
+        data.frame() %&gt;%
+        rename_with(~ str_remove_all(.x, &quot;X&quot;)) %&gt;%
+        mutate(seg = row.names(.))
+    }
+  ))
+
+print(data_processed_nest_1)</code></pre>
+<pre><code>## # A tibble: 4 x 4
+## # Groups:   flag_peak, direction_id [4]
+##   direction_id flag_peak data               cor         
+##   &lt;chr&gt;        &lt;chr&gt;     &lt;list&gt;             &lt;list&gt;      
+## 1 north_bound  AMPeak    &lt;tibble [18 x 11]&gt; &lt;df [8 x 9]&gt;
+## 2 south_bound  AMPeak    &lt;tibble [21 x 11]&gt; &lt;df [8 x 9]&gt;
+## 3 south_bound  PMPeak    &lt;tibble [28 x 11]&gt; &lt;df [8 x 9]&gt;
+## 4 north_bound  PMPeak    &lt;tibble [28 x 11]&gt; &lt;df [8 x 9]&gt;</code></pre>
+<p>The <code>nest</code> object now has an additional <code>cor</code>column that contains the correlation matrix for each direction-time pair data subset.</p>
+</div>
+<div id="step-3" class="section level2">
+<h2>### Step 3</h2>
+<p>Unnest and ungroup the object so that you have a single dataframe where each direction-time correlation matrix has been row-bound together.</p>
+<pre class="r"><code>data_unnested &lt;- data_processed_nest_1 %&gt;%
+  select(!data) %&gt;%
+  unnest(cols = cor) %&gt;%
+  ungroup()
+
+print(head(data_unnested, 9) %&gt;%
+  reactable::reactable())</code></pre>
+</div>
+</div>
+<div id="to-wrap-up" class="section level1">
+<h1>To Wrap Up</h1>
+<p>In summary it should look like this:</p>
+<pre class="r"><code>data_processed_nest &lt;- data_processed %&gt;%
+  group_by(flag_peak, direction_id) %&gt;%
+  nest() %&gt;%
+  mutate(cor = map(
+    data,
+    ~ {
+      .x %&gt;%
+        select(!c(trip_id:vehicle_id)) %&gt;%
+        cor(use = &quot;pairwise.complete.obs&quot;) %&gt;%
+        data.frame() %&gt;%
+        rename_with(~ str_remove_all(.x, &quot;X&quot;)) %&gt;%
+        mutate(seg = row.names(.))
+    }
+  )) %&gt;%
+  select(!data) %&gt;%
+  unnest(cols = cor) %&gt;%
+  ungroup()</code></pre>
+<p>And we can now use that object for our analysis.</p>
+<pre class="r"><code>plot &lt;- data_processed_nest %&gt;%
+  pivot_longer(
+    cols = !c(direction_id, flag_peak, seg),
+    names_to = &quot;seg_1&quot;
+  ) %&gt;%
+  mutate(cor_value = round(value, 2)) %&gt;%
+  ggplot() +
+  geom_tile(aes(seg, seg_1, fill = cor_value)) +
+  scale_fill_gradient2(limits = c(-1, 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  facet_grid(
+    rows = vars(direction_id),
+    cols = vars(flag_peak)
+  ) +
+  labs(fill = &quot;Cor Value&quot;, x = &quot;&quot;, y = &quot;&quot;)
+
+interactive_object &lt;- plot %&gt;% plotly::ggplotly()</code></pre>
+<div id="htmlwidget-1" style="width:1200px;height:900px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"data":[{"x":[1,2,3,4,5,6,7,8],"y":[1,2,3,4,5,6,7,8],"z":[[1,0.271794871794872,0.415384615384615,0.543589743589744,0.405128205128205,0.682051282051282,0.682051282051282,0.641025641025641],[0.271794871794872,1,0.297435897435897,0.241025641025641,0.343589743589744,0.143589743589744,0,0.21025641025641],[0.415384615384615,0.297435897435897,1,0.492307692307692,0.430769230769231,0.723076923076923,0.702564102564103,0.476923076923077],[0.543589743589744,0.241025641025641,0.492307692307692,1,0.630769230769231,0.538461538461539,0.769230769230769,0.492307692307692],[0.405128205128205,0.343589743589744,0.430769230769231,0.630769230769231,1,0.497435897435897,0.687179487179487,0.538461538461539],[0.682051282051282,0.143589743589744,0.723076923076923,0.538461538461539,0.497435897435897,1,0.815384615384615,0.553846153846154],[0.682051282051282,0,0.702564102564103,0.769230769230769,0.687179487179487,0.815384615384615,1,0.743589743589744],[0.641025641025641,0.21025641025641,0.476923076923077,0.492307692307692,0.538461538461539,0.553846153846154,0.743589743589744,1]],"text":[["seg: 100th_88th<br />seg_1: 100th_88th<br />cor_value:  1.00","seg: 18th_23rd<br />seg_1: 100th_88th<br />cor_value: -0.42","seg: 23rd_Hewitt<br />seg_1: 100th_88th<br />cor_value: -0.14","seg: 4th_ramp<br />seg_1: 100th_88th<br />cor_value:  0.11","seg: 88th_grove<br />seg_1: 100th_88th<br />cor_value: -0.16","seg: grove_4th<br />seg_1: 100th_88th<br />cor_value:  0.38","seg: Hewitt_100th<br />seg_1: 100th_88th<br />cor_value:  0.38","seg: ramp_14th<br />seg_1: 100th_88th<br />cor_value:  0.30"],["seg: 100th_88th<br />seg_1: 18th_23rd<br />cor_value: -0.42","seg: 18th_23rd<br />seg_1: 18th_23rd<br />cor_value:  1.00","seg: 23rd_Hewitt<br />seg_1: 18th_23rd<br />cor_value: -0.37","seg: 4th_ramp<br />seg_1: 18th_23rd<br />cor_value: -0.48","seg: 88th_grove<br />seg_1: 18th_23rd<br />cor_value: -0.28","seg: grove_4th<br />seg_1: 18th_23rd<br />cor_value: -0.67","seg: Hewitt_100th<br />seg_1: 18th_23rd<br />cor_value: -0.95","seg: ramp_14th<br />seg_1: 18th_23rd<br />cor_value: -0.54"],["seg: 100th_88th<br />seg_1: 23rd_Hewitt<br />cor_value: -0.14","seg: 18th_23rd<br />seg_1: 23rd_Hewitt<br />cor_value: -0.37","seg: 23rd_Hewitt<br />seg_1: 23rd_Hewitt<br />cor_value:  1.00","seg: 4th_ramp<br />seg_1: 23rd_Hewitt<br />cor_value:  0.01","seg: 88th_grove<br />seg_1: 23rd_Hewitt<br />cor_value: -0.11","seg: grove_4th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.46","seg: Hewitt_100th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.42","seg: ramp_14th<br />seg_1: 23rd_Hewitt<br />cor_value: -0.02"],["seg: 100th_88th<br />seg_1: 4th_ramp<br />cor_value:  0.11","seg: 18th_23rd<br />seg_1: 4th_ramp<br />cor_value: -0.48","seg: 23rd_Hewitt<br />seg_1: 4th_ramp<br />cor_value:  0.01","seg: 4th_ramp<br />seg_1: 4th_ramp<br />cor_value:  1.00","seg: 88th_grove<br />seg_1: 4th_ramp<br />cor_value:  0.28","seg: grove_4th<br />seg_1: 4th_ramp<br />cor_value:  0.10","seg: Hewitt_100th<br />seg_1: 4th_ramp<br />cor_value:  0.55","seg: ramp_14th<br />seg_1: 4th_ramp<br />cor_value:  0.01"],["seg: 100th_88th<br />seg_1: 88th_grove<br />cor_value: -0.16","seg: 18th_23rd<br />seg_1: 88th_grove<br />cor_value: -0.28","seg: 23rd_Hewitt<br />seg_1: 88th_grove<br />cor_value: -0.11","seg: 4th_ramp<br />seg_1: 88th_grove<br />cor_value:  0.28","seg: 88th_grove<br />seg_1: 88th_grove<br />cor_value:  1.00","seg: grove_4th<br />seg_1: 88th_grove<br />cor_value:  0.02","seg: Hewitt_100th<br />seg_1: 88th_grove<br />cor_value:  0.39","seg: ramp_14th<br />seg_1: 88th_grove<br />cor_value:  0.10"],["seg: 100th_88th<br />seg_1: grove_4th<br />cor_value:  0.38","seg: 18th_23rd<br />seg_1: grove_4th<br />cor_value: -0.67","seg: 23rd_Hewitt<br />seg_1: grove_4th<br />cor_value:  0.46","seg: 4th_ramp<br />seg_1: grove_4th<br />cor_value:  0.10","seg: 88th_grove<br />seg_1: grove_4th<br />cor_value:  0.02","seg: grove_4th<br />seg_1: grove_4th<br />cor_value:  1.00","seg: Hewitt_100th<br />seg_1: grove_4th<br />cor_value:  0.64","seg: ramp_14th<br />seg_1: grove_4th<br />cor_value:  0.13"],["seg: 100th_88th<br />seg_1: Hewitt_100th<br />cor_value:  0.38","seg: 18th_23rd<br />seg_1: Hewitt_100th<br />cor_value: -0.95","seg: 23rd_Hewitt<br />seg_1: Hewitt_100th<br />cor_value:  0.42","seg: 4th_ramp<br />seg_1: Hewitt_100th<br />cor_value:  0.55","seg: 88th_grove<br />seg_1: Hewitt_100th<br />cor_value:  0.39","seg: grove_4th<br />seg_1: Hewitt_100th<br />cor_value:  0.64","seg: Hewitt_100th<br />seg_1: Hewitt_100th<br />cor_value:  1.00","seg: ramp_14th<br />seg_1: Hewitt_100th<br />cor_value:  0.50"],["seg: 100th_88th<br />seg_1: ramp_14th<br />cor_value:  0.30","seg: 18th_23rd<br />seg_1: ramp_14th<br />cor_value: -0.54","seg: 23rd_Hewitt<br />seg_1: ramp_14th<br />cor_value: -0.02","seg: 4th_ramp<br />seg_1: ramp_14th<br />cor_value:  0.01","seg: 88th_grove<br />seg_1: ramp_14th<br />cor_value:  0.10","seg: grove_4th<br />seg_1: ramp_14th<br />cor_value:  0.13","seg: Hewitt_100th<br />seg_1: ramp_14th<br />cor_value:  0.50","seg: ramp_14th<br />seg_1: ramp_14th<br />cor_value:  1.00"]],"colorscale":[[0,"#8B302D"],[0.143589743589744,"#B26C65"],[0.21025641025641,"#C38781"],[0.241025641025641,"#CA948E"],[0.271794871794872,"#D1A19B"],[0.297435897435897,"#D7ACA7"],[0.343589743589744,"#E2C0BC"],[0.405128205128205,"#EFDBD8"],[0.415384615384615,"#F1DFDD"],[0.430769230769231,"#F4E6E4"],[0.476923076923077,"#FDFAFA"],[0.492307692307692,"#FDFDFE"],[0.497435897435897,"#FBFBFD"],[0.538461538461539,"#ECE9F5"],[0.543589743589744,"#EAE7F4"],[0.553846153846154,"#E6E3F2"],[0.630769230769231,"#CAC3E2"],[0.641025641025641,"#C6BFE0"],[0.682051282051282,"#B7AFD8"],[0.687179487179487,"#B6ADD7"],[0.702564102564103,"#B0A7D4"],[0.723076923076923,"#A89FD0"],[0.743589743589744,"#A197CC"],[0.769230769230769,"#978DC7"],[0.815384615384615,"#867CBD"],[1,"#3A3A98"]],"type":"heatmap","showscale":false,"autocolorscale":false,"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2,3,4,5,6,7,8],"y":[1,2,3,4,5,6,7,8],"z":[[1,0.56020942408377,0.481675392670157,0.324607329842932,0.460732984293194,0.460732984293194,0.37696335078534,0.392670157068063],[0.56020942408377,1,0.371727748691099,0.413612565445026,0.612565445026178,0.361256544502618,0,0.612565445026178],[0.481675392670157,0.371727748691099,1,0.303664921465969,0.43455497382199,0.450261780104712,0.586387434554974,0.450261780104712],[0.324607329842932,0.413612565445026,0.303664921465969,1,0.429319371727749,0.345549738219895,0.539267015706806,0.43979057591623],[0.460732984293194,0.612565445026178,0.43455497382199,0.429319371727749,1,0.392670157068063,0.539267015706806,0.910994764397906],[0.460732984293194,0.361256544502618,0.450261780104712,0.345549738219895,0.392670157068063,1,0.570680628272251,0.429319371727749],[0.37696335078534,0,0.586387434554974,0.539267015706806,0.539267015706806,0.570680628272251,1,0.544502617801047],[0.392670157068063,0.612565445026178,0.450261780104712,0.43979057591623,0.910994764397906,0.429319371727749,0.544502617801047,1]],"text":[["seg: 100th_88th<br />seg_1: 100th_88th<br />cor_value:  1.00","seg: 18th_23rd<br />seg_1: 100th_88th<br />cor_value:  0.16","seg: 23rd_Hewitt<br />seg_1: 100th_88th<br />cor_value:  0.01","seg: 4th_ramp<br />seg_1: 100th_88th<br />cor_value: -0.29","seg: 88th_grove<br />seg_1: 100th_88th<br />cor_value: -0.03","seg: grove_4th<br />seg_1: 100th_88th<br />cor_value: -0.03","seg: Hewitt_100th<br />seg_1: 100th_88th<br />cor_value: -0.19","seg: ramp_14th<br />seg_1: 100th_88th<br />cor_value: -0.16"],["seg: 100th_88th<br />seg_1: 18th_23rd<br />cor_value:  0.16","seg: 18th_23rd<br />seg_1: 18th_23rd<br />cor_value:  1.00","seg: 23rd_Hewitt<br />seg_1: 18th_23rd<br />cor_value: -0.20","seg: 4th_ramp<br />seg_1: 18th_23rd<br />cor_value: -0.12","seg: 88th_grove<br />seg_1: 18th_23rd<br />cor_value:  0.26","seg: grove_4th<br />seg_1: 18th_23rd<br />cor_value: -0.22","seg: Hewitt_100th<br />seg_1: 18th_23rd<br />cor_value: -0.91","seg: ramp_14th<br />seg_1: 18th_23rd<br />cor_value:  0.26"],["seg: 100th_88th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.01","seg: 18th_23rd<br />seg_1: 23rd_Hewitt<br />cor_value: -0.20","seg: 23rd_Hewitt<br />seg_1: 23rd_Hewitt<br />cor_value:  1.00","seg: 4th_ramp<br />seg_1: 23rd_Hewitt<br />cor_value: -0.33","seg: 88th_grove<br />seg_1: 23rd_Hewitt<br />cor_value: -0.08","seg: grove_4th<br />seg_1: 23rd_Hewitt<br />cor_value: -0.05","seg: Hewitt_100th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.21","seg: ramp_14th<br />seg_1: 23rd_Hewitt<br />cor_value: -0.05"],["seg: 100th_88th<br />seg_1: 4th_ramp<br />cor_value: -0.29","seg: 18th_23rd<br />seg_1: 4th_ramp<br />cor_value: -0.12","seg: 23rd_Hewitt<br />seg_1: 4th_ramp<br />cor_value: -0.33","seg: 4th_ramp<br />seg_1: 4th_ramp<br />cor_value:  1.00","seg: 88th_grove<br />seg_1: 4th_ramp<br />cor_value: -0.09","seg: grove_4th<br />seg_1: 4th_ramp<br />cor_value: -0.25","seg: Hewitt_100th<br />seg_1: 4th_ramp<br />cor_value:  0.12","seg: ramp_14th<br />seg_1: 4th_ramp<br />cor_value: -0.07"],["seg: 100th_88th<br />seg_1: 88th_grove<br />cor_value: -0.03","seg: 18th_23rd<br />seg_1: 88th_grove<br />cor_value:  0.26","seg: 23rd_Hewitt<br />seg_1: 88th_grove<br />cor_value: -0.08","seg: 4th_ramp<br />seg_1: 88th_grove<br />cor_value: -0.09","seg: 88th_grove<br />seg_1: 88th_grove<br />cor_value:  1.00","seg: grove_4th<br />seg_1: 88th_grove<br />cor_value: -0.16","seg: Hewitt_100th<br />seg_1: 88th_grove<br />cor_value:  0.12","seg: ramp_14th<br />seg_1: 88th_grove<br />cor_value:  0.83"],["seg: 100th_88th<br />seg_1: grove_4th<br />cor_value: -0.03","seg: 18th_23rd<br />seg_1: grove_4th<br />cor_value: -0.22","seg: 23rd_Hewitt<br />seg_1: grove_4th<br />cor_value: -0.05","seg: 4th_ramp<br />seg_1: grove_4th<br />cor_value: -0.25","seg: 88th_grove<br />seg_1: grove_4th<br />cor_value: -0.16","seg: grove_4th<br />seg_1: grove_4th<br />cor_value:  1.00","seg: Hewitt_100th<br />seg_1: grove_4th<br />cor_value:  0.18","seg: ramp_14th<br />seg_1: grove_4th<br />cor_value: -0.09"],["seg: 100th_88th<br />seg_1: Hewitt_100th<br />cor_value: -0.19","seg: 18th_23rd<br />seg_1: Hewitt_100th<br />cor_value: -0.91","seg: 23rd_Hewitt<br />seg_1: Hewitt_100th<br />cor_value:  0.21","seg: 4th_ramp<br />seg_1: Hewitt_100th<br />cor_value:  0.12","seg: 88th_grove<br />seg_1: Hewitt_100th<br />cor_value:  0.12","seg: grove_4th<br />seg_1: Hewitt_100th<br />cor_value:  0.18","seg: Hewitt_100th<br />seg_1: Hewitt_100th<br />cor_value:  1.00","seg: ramp_14th<br />seg_1: Hewitt_100th<br />cor_value:  0.13"],["seg: 100th_88th<br />seg_1: ramp_14th<br />cor_value: -0.16","seg: 18th_23rd<br />seg_1: ramp_14th<br />cor_value:  0.26","seg: 23rd_Hewitt<br />seg_1: ramp_14th<br />cor_value: -0.05","seg: 4th_ramp<br />seg_1: ramp_14th<br />cor_value: -0.07","seg: 88th_grove<br />seg_1: ramp_14th<br />cor_value:  0.83","seg: grove_4th<br />seg_1: ramp_14th<br />cor_value: -0.09","seg: Hewitt_100th<br />seg_1: ramp_14th<br />cor_value:  0.13","seg: ramp_14th<br />seg_1: ramp_14th<br />cor_value:  1.00"]],"colorscale":[[0,"#903935"],[0.303664921465969,"#DCB5B0"],[0.324607329842932,"#E1BEB9"],[0.345549738219895,"#E5C7C3"],[0.361256544502618,"#E8CDCA"],[0.371727748691099,"#EAD2CE"],[0.37696335078534,"#ECD4D1"],[0.392670157068063,"#EFDBD8"],[0.413612565445026,"#F3E4E2"],[0.429319371727749,"#F6EAE9"],[0.43455497382199,"#F7EDEB"],[0.43979057591623,"#F8EFEE"],[0.450261780104712,"#FAF4F3"],[0.460732984293194,"#FCF8F8"],[0.481675392670157,"#FDFDFE"],[0.539267015706806,"#E8E5F3"],[0.544502617801047,"#E6E3F2"],[0.56020942408377,"#E1DDEF"],[0.570680628272251,"#DDD8ED"],[0.586387434554974,"#D7D2E9"],[0.612565445026178,"#CEC8E4"],[0.910994764397906,"#6058AA"],[1,"#3A3A98"]],"type":"heatmap","showscale":false,"autocolorscale":false,"showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2,3,4,5,6,7,8],"y":[1,2,3,4,5,6,7,8],"z":[[1,0.47,0.47,0.32,0.405,0.6,0.53,0.49],[0.47,1,0.325,0.325,0.325,0.32,0,0.285],[0.47,0.325,1,0.405,0.575,0.42,0.665,0.55],[0.32,0.325,0.405,1,0.455,0.385,0.665,0.465],[0.405,0.325,0.575,0.455,1,0.44,0.68,0.455],[0.6,0.32,0.42,0.385,0.44,1,0.69,0.635],[0.53,0,0.665,0.665,0.68,0.69,1,0.72],[0.49,0.285,0.55,0.465,0.455,0.635,0.72,1]],"text":[["seg: 100th_88th<br />seg_1: 100th_88th<br />cor_value:  1.00","seg: 18th_23rd<br />seg_1: 100th_88th<br />cor_value: -0.06","seg: 23rd_Hewitt<br />seg_1: 100th_88th<br />cor_value: -0.06","seg: 4th_ramp<br />seg_1: 100th_88th<br />cor_value: -0.36","seg: 88th_grove<br />seg_1: 100th_88th<br />cor_value: -0.19","seg: grove_4th<br />seg_1: 100th_88th<br />cor_value:  0.20","seg: Hewitt_100th<br />seg_1: 100th_88th<br />cor_value:  0.06","seg: ramp_14th<br />seg_1: 100th_88th<br />cor_value: -0.02"],["seg: 100th_88th<br />seg_1: 18th_23rd<br />cor_value: -0.06","seg: 18th_23rd<br />seg_1: 18th_23rd<br />cor_value:  1.00","seg: 23rd_Hewitt<br />seg_1: 18th_23rd<br />cor_value: -0.35","seg: 4th_ramp<br />seg_1: 18th_23rd<br />cor_value: -0.35","seg: 88th_grove<br />seg_1: 18th_23rd<br />cor_value: -0.35","seg: grove_4th<br />seg_1: 18th_23rd<br />cor_value: -0.36","seg: Hewitt_100th<br />seg_1: 18th_23rd<br />cor_value: -1.00","seg: ramp_14th<br />seg_1: 18th_23rd<br />cor_value: -0.43"],["seg: 100th_88th<br />seg_1: 23rd_Hewitt<br />cor_value: -0.06","seg: 18th_23rd<br />seg_1: 23rd_Hewitt<br />cor_value: -0.35","seg: 23rd_Hewitt<br />seg_1: 23rd_Hewitt<br />cor_value:  1.00","seg: 4th_ramp<br />seg_1: 23rd_Hewitt<br />cor_value: -0.19","seg: 88th_grove<br />seg_1: 23rd_Hewitt<br />cor_value:  0.15","seg: grove_4th<br />seg_1: 23rd_Hewitt<br />cor_value: -0.16","seg: Hewitt_100th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.33","seg: ramp_14th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.10"],["seg: 100th_88th<br />seg_1: 4th_ramp<br />cor_value: -0.36","seg: 18th_23rd<br />seg_1: 4th_ramp<br />cor_value: -0.35","seg: 23rd_Hewitt<br />seg_1: 4th_ramp<br />cor_value: -0.19","seg: 4th_ramp<br />seg_1: 4th_ramp<br />cor_value:  1.00","seg: 88th_grove<br />seg_1: 4th_ramp<br />cor_value: -0.09","seg: grove_4th<br />seg_1: 4th_ramp<br />cor_value: -0.23","seg: Hewitt_100th<br />seg_1: 4th_ramp<br />cor_value:  0.33","seg: ramp_14th<br />seg_1: 4th_ramp<br />cor_value: -0.07"],["seg: 100th_88th<br />seg_1: 88th_grove<br />cor_value: -0.19","seg: 18th_23rd<br />seg_1: 88th_grove<br />cor_value: -0.35","seg: 23rd_Hewitt<br />seg_1: 88th_grove<br />cor_value:  0.15","seg: 4th_ramp<br />seg_1: 88th_grove<br />cor_value: -0.09","seg: 88th_grove<br />seg_1: 88th_grove<br />cor_value:  1.00","seg: grove_4th<br />seg_1: 88th_grove<br />cor_value: -0.12","seg: Hewitt_100th<br />seg_1: 88th_grove<br />cor_value:  0.36","seg: ramp_14th<br />seg_1: 88th_grove<br />cor_value: -0.09"],["seg: 100th_88th<br />seg_1: grove_4th<br />cor_value:  0.20","seg: 18th_23rd<br />seg_1: grove_4th<br />cor_value: -0.36","seg: 23rd_Hewitt<br />seg_1: grove_4th<br />cor_value: -0.16","seg: 4th_ramp<br />seg_1: grove_4th<br />cor_value: -0.23","seg: 88th_grove<br />seg_1: grove_4th<br />cor_value: -0.12","seg: grove_4th<br />seg_1: grove_4th<br />cor_value:  1.00","seg: Hewitt_100th<br />seg_1: grove_4th<br />cor_value:  0.38","seg: ramp_14th<br />seg_1: grove_4th<br />cor_value:  0.27"],["seg: 100th_88th<br />seg_1: Hewitt_100th<br />cor_value:  0.06","seg: 18th_23rd<br />seg_1: Hewitt_100th<br />cor_value: -1.00","seg: 23rd_Hewitt<br />seg_1: Hewitt_100th<br />cor_value:  0.33","seg: 4th_ramp<br />seg_1: Hewitt_100th<br />cor_value:  0.33","seg: 88th_grove<br />seg_1: Hewitt_100th<br />cor_value:  0.36","seg: grove_4th<br />seg_1: Hewitt_100th<br />cor_value:  0.38","seg: Hewitt_100th<br />seg_1: Hewitt_100th<br />cor_value:  1.00","seg: ramp_14th<br />seg_1: Hewitt_100th<br />cor_value:  0.44"],["seg: 100th_88th<br />seg_1: ramp_14th<br />cor_value: -0.02","seg: 18th_23rd<br />seg_1: ramp_14th<br />cor_value: -0.43","seg: 23rd_Hewitt<br />seg_1: ramp_14th<br />cor_value:  0.10","seg: 4th_ramp<br />seg_1: ramp_14th<br />cor_value: -0.07","seg: 88th_grove<br />seg_1: ramp_14th<br />cor_value: -0.09","seg: grove_4th<br />seg_1: ramp_14th<br />cor_value:  0.27","seg: Hewitt_100th<br />seg_1: ramp_14th<br />cor_value:  0.44","seg: ramp_14th<br />seg_1: ramp_14th<br />cor_value:  1.00"]],"colorscale":[[0,"#832424"],[0.285,"#D09F99"],[0.32,"#D9AEA9"],[0.325,"#DAB0AB"],[0.385,"#E7CBC7"],[0.405,"#ECD4D1"],[0.42,"#EFDBD8"],[0.44,"#F3E4E2"],[0.455,"#F6EAE9"],[0.465,"#F8EFEE"],[0.47,"#F9F1F0"],[0.49,"#FDFAFA"],[0.53,"#F4F2F9"],[0.55,"#ECE9F5"],[0.575,"#E3DFF0"],[0.6,"#D9D4EB"],[0.635,"#CCC6E3"],[0.665,"#C1B9DD"],[0.68,"#BBB3DA"],[0.69,"#B7AFD8"],[0.72,"#ACA3D2"],[1,"#3A3A98"]],"type":"heatmap","showscale":false,"autocolorscale":false,"showlegend":false,"xaxis":"x","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[1,2,3,4,5,6,7,8],"y":[1,2,3,4,5,6,7,8],"z":[[1,0.583333333333333,0.596153846153846,0.608974358974359,0.852564102564103,0.711538461538462,0.391025641025641,0.83974358974359],[0.583333333333333,1,0.435897435897436,0.378205128205128,0.692307692307692,0.391025641025641,0,0.717948717948718],[0.596153846153846,0.435897435897436,1,0.185897435897436,0.628205128205128,0.378205128205128,0.435897435897436,0.602564102564103],[0.608974358974359,0.378205128205128,0.185897435897436,1,0.416666666666667,0.576923076923077,0.256410256410256,0.435897435897436],[0.852564102564103,0.692307692307692,0.628205128205128,0.416666666666667,1,0.474358974358974,0.41025641025641,0.974358974358974],[0.711538461538462,0.391025641025641,0.378205128205128,0.576923076923077,0.474358974358974,1,0.416666666666667,0.442307692307692],[0.391025641025641,0,0.435897435897436,0.256410256410256,0.41025641025641,0.416666666666667,1,0.397435897435897],[0.83974358974359,0.717948717948718,0.602564102564103,0.435897435897436,0.974358974358974,0.442307692307692,0.397435897435897,1]],"text":[["seg: 100th_88th<br />seg_1: 100th_88th<br />cor_value:  1.00","seg: 18th_23rd<br />seg_1: 100th_88th<br />cor_value:  0.35","seg: 23rd_Hewitt<br />seg_1: 100th_88th<br />cor_value:  0.37","seg: 4th_ramp<br />seg_1: 100th_88th<br />cor_value:  0.39","seg: 88th_grove<br />seg_1: 100th_88th<br />cor_value:  0.77","seg: grove_4th<br />seg_1: 100th_88th<br />cor_value:  0.55","seg: Hewitt_100th<br />seg_1: 100th_88th<br />cor_value:  0.05","seg: ramp_14th<br />seg_1: 100th_88th<br />cor_value:  0.75"],["seg: 100th_88th<br />seg_1: 18th_23rd<br />cor_value:  0.35","seg: 18th_23rd<br />seg_1: 18th_23rd<br />cor_value:  1.00","seg: 23rd_Hewitt<br />seg_1: 18th_23rd<br />cor_value:  0.12","seg: 4th_ramp<br />seg_1: 18th_23rd<br />cor_value:  0.03","seg: 88th_grove<br />seg_1: 18th_23rd<br />cor_value:  0.52","seg: grove_4th<br />seg_1: 18th_23rd<br />cor_value:  0.05","seg: Hewitt_100th<br />seg_1: 18th_23rd<br />cor_value: -0.56","seg: ramp_14th<br />seg_1: 18th_23rd<br />cor_value:  0.56"],["seg: 100th_88th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.37","seg: 18th_23rd<br />seg_1: 23rd_Hewitt<br />cor_value:  0.12","seg: 23rd_Hewitt<br />seg_1: 23rd_Hewitt<br />cor_value:  1.00","seg: 4th_ramp<br />seg_1: 23rd_Hewitt<br />cor_value: -0.27","seg: 88th_grove<br />seg_1: 23rd_Hewitt<br />cor_value:  0.42","seg: grove_4th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.03","seg: Hewitt_100th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.12","seg: ramp_14th<br />seg_1: 23rd_Hewitt<br />cor_value:  0.38"],["seg: 100th_88th<br />seg_1: 4th_ramp<br />cor_value:  0.39","seg: 18th_23rd<br />seg_1: 4th_ramp<br />cor_value:  0.03","seg: 23rd_Hewitt<br />seg_1: 4th_ramp<br />cor_value: -0.27","seg: 4th_ramp<br />seg_1: 4th_ramp<br />cor_value:  1.00","seg: 88th_grove<br />seg_1: 4th_ramp<br />cor_value:  0.09","seg: grove_4th<br />seg_1: 4th_ramp<br />cor_value:  0.34","seg: Hewitt_100th<br />seg_1: 4th_ramp<br />cor_value: -0.16","seg: ramp_14th<br />seg_1: 4th_ramp<br />cor_value:  0.12"],["seg: 100th_88th<br />seg_1: 88th_grove<br />cor_value:  0.77","seg: 18th_23rd<br />seg_1: 88th_grove<br />cor_value:  0.52","seg: 23rd_Hewitt<br />seg_1: 88th_grove<br />cor_value:  0.42","seg: 4th_ramp<br />seg_1: 88th_grove<br />cor_value:  0.09","seg: 88th_grove<br />seg_1: 88th_grove<br />cor_value:  1.00","seg: grove_4th<br />seg_1: 88th_grove<br />cor_value:  0.18","seg: Hewitt_100th<br />seg_1: 88th_grove<br />cor_value:  0.08","seg: ramp_14th<br />seg_1: 88th_grove<br />cor_value:  0.96"],["seg: 100th_88th<br />seg_1: grove_4th<br />cor_value:  0.55","seg: 18th_23rd<br />seg_1: grove_4th<br />cor_value:  0.05","seg: 23rd_Hewitt<br />seg_1: grove_4th<br />cor_value:  0.03","seg: 4th_ramp<br />seg_1: grove_4th<br />cor_value:  0.34","seg: 88th_grove<br />seg_1: grove_4th<br />cor_value:  0.18","seg: grove_4th<br />seg_1: grove_4th<br />cor_value:  1.00","seg: Hewitt_100th<br />seg_1: grove_4th<br />cor_value:  0.09","seg: ramp_14th<br />seg_1: grove_4th<br />cor_value:  0.13"],["seg: 100th_88th<br />seg_1: Hewitt_100th<br />cor_value:  0.05","seg: 18th_23rd<br />seg_1: Hewitt_100th<br />cor_value: -0.56","seg: 23rd_Hewitt<br />seg_1: Hewitt_100th<br />cor_value:  0.12","seg: 4th_ramp<br />seg_1: Hewitt_100th<br />cor_value: -0.16","seg: 88th_grove<br />seg_1: Hewitt_100th<br />cor_value:  0.08","seg: grove_4th<br />seg_1: Hewitt_100th<br />cor_value:  0.09","seg: Hewitt_100th<br />seg_1: Hewitt_100th<br />cor_value:  1.00","seg: ramp_14th<br />seg_1: Hewitt_100th<br />cor_value:  0.06"],["seg: 100th_88th<br />seg_1: ramp_14th<br />cor_value:  0.75","seg: 18th_23rd<br />seg_1: ramp_14th<br />cor_value:  0.56","seg: 23rd_Hewitt<br />seg_1: ramp_14th<br />cor_value:  0.38","seg: 4th_ramp<br />seg_1: ramp_14th<br />cor_value:  0.12","seg: 88th_grove<br />seg_1: ramp_14th<br />cor_value:  0.96","seg: grove_4th<br />seg_1: ramp_14th<br />cor_value:  0.13","seg: Hewitt_100th<br />seg_1: ramp_14th<br />cor_value:  0.06","seg: ramp_14th<br />seg_1: ramp_14th<br />cor_value:  1.00"]],"colorscale":[[0,"#C0837C"],[0.185897435897436,"#E3C2BE"],[0.256410256410256,"#EFDBD8"],[0.378205128205128,"#F9F8FC"],[0.391025641025641,"#F6F4FA"],[0.397435897435897,"#F4F2F9"],[0.41025641025641,"#F0EEF7"],[0.416666666666667,"#EEECF6"],[0.435897435897436,"#E8E5F3"],[0.442307692307692,"#E6E3F2"],[0.474358974358974,"#DDD8ED"],[0.576923076923077,"#BFB7DC"],[0.583333333333333,"#BDB5DB"],[0.596153846153846,"#B9B1D9"],[0.602564102564103,"#B7AFD8"],[0.608974358974359,"#B6ADD7"],[0.628205128205128,"#B0A7D4"],[0.692307692307692,"#9D93CA"],[0.711538461538462,"#978DC7"],[0.717948717948718,"#958BC6"],[0.83974358974359,"#7167B2"],[0.852564102564103,"#6D63B0"],[0.974358974358974,"#44419C"],[1,"#3A3A98"]],"type":"heatmap","showscale":false,"autocolorscale":false,"showlegend":false,"xaxis":"x2","yaxis":"y2","hoverinfo":"text","frame":null},{"x":[1],"y":[1],"name":"99_931a1bb17fcb0ace8c5a19dc50ffed83","type":"scatter","mode":"markers","opacity":0,"hoverinfo":"skip","showlegend":false,"marker":{"color":[0,1],"colorscale":[[0,"#832424"],[0.00334448160535117,"#842625"],[0.00668896321070234,"#852726"],[0.0100334448160535,"#862928"],[0.0133779264214047,"#872B29"],[0.0167224080267558,"#882C2A"],[0.020066889632107,"#892E2B"],[0.0234113712374582,"#8A2F2D"],[0.0267558528428093,"#8B312E"],[0.0301003344481605,"#8C322F"],[0.0334448160535117,"#8D3430"],[0.0367892976588629,"#8E3532"],[0.040133779264214,"#8F3733"],[0.0434782608695652,"#903834"],[0.0468227424749164,"#913A35"],[0.0501672240802676,"#923B37"],[0.0535117056856187,"#933D38"],[0.0568561872909699,"#943E39"],[0.0602006688963211,"#95403B"],[0.0635451505016723,"#96413C"],[0.0668896321070234,"#97423D"],[0.0702341137123746,"#98443E"],[0.0735785953177258,"#994540"],[0.0769230769230769,"#9A4741"],[0.0802675585284281,"#9B4842"],[0.0836120401337793,"#9C4A44"],[0.0869565217391304,"#9D4B45"],[0.0903010033444816,"#9D4C46"],[0.0936454849498328,"#9E4E48"],[0.0969899665551839,"#9F4F49"],[0.100334448160535,"#A0514A"],[0.103678929765886,"#A1524C"],[0.107023411371237,"#A2544D"],[0.110367892976589,"#A3554E"],[0.11371237458194,"#A45650"],[0.117056856187291,"#A55851"],[0.120401337792642,"#A65952"],[0.123745819397993,"#A75B54"],[0.127090301003345,"#A85C55"],[0.130434782608696,"#A95D56"],[0.133779264214047,"#AA5F58"],[0.137123745819398,"#AA6059"],[0.140468227424749,"#AB625B"],[0.1438127090301,"#AC635C"],[0.147157190635452,"#AD645D"],[0.150501672240803,"#AE665F"],[0.153846153846154,"#AF6760"],[0.157190635451505,"#B06961"],[0.160535117056856,"#B16A63"],[0.163879598662207,"#B26B64"],[0.167224080267559,"#B36D66"],[0.17056856187291,"#B36E67"],[0.173913043478261,"#B47069"],[0.177257525083612,"#B5716A"],[0.180602006688963,"#B6736B"],[0.183946488294314,"#B7746D"],[0.187290969899666,"#B8756E"],[0.190635451505017,"#B97770"],[0.193979933110368,"#BA7871"],[0.197324414715719,"#BA7A72"],[0.20066889632107,"#BB7B74"],[0.204013377926421,"#BC7C75"],[0.207357859531773,"#BD7E77"],[0.210702341137124,"#BE7F78"],[0.214046822742475,"#BF817A"],[0.217391304347826,"#C0827B"],[0.220735785953177,"#C0847D"],[0.224080267558528,"#C1857E"],[0.22742474916388,"#C28680"],[0.230769230769231,"#C38881"],[0.234113712374582,"#C48982"],[0.237458193979933,"#C58B84"],[0.240802675585284,"#C58C85"],[0.244147157190635,"#C68E87"],[0.247491638795987,"#C78F88"],[0.250836120401338,"#C8908A"],[0.254180602006689,"#C9928B"],[0.25752508361204,"#CA938D"],[0.260869565217391,"#CA958E"],[0.264214046822742,"#CB9690"],[0.267558528428094,"#CC9891"],[0.270903010033445,"#CD9993"],[0.274247491638796,"#CE9A94"],[0.277591973244147,"#CE9C96"],[0.280936454849498,"#CF9D97"],[0.284280936454849,"#D09F99"],[0.287625418060201,"#D1A09A"],[0.290969899665552,"#D2A29C"],[0.294314381270903,"#D2A39D"],[0.297658862876254,"#D3A59F"],[0.301003344481605,"#D4A6A0"],[0.304347826086957,"#D5A7A2"],[0.307692307692308,"#D6A9A3"],[0.311036789297659,"#D6AAA5"],[0.31438127090301,"#D7ACA6"],[0.317725752508361,"#D8ADA8"],[0.321070234113712,"#D9AFA9"],[0.324414715719064,"#DAB0AB"],[0.327759197324415,"#DAB2AD"],[0.331103678929766,"#DBB3AE"],[0.334448160535117,"#DCB5B0"],[0.337792642140468,"#DDB6B1"],[0.341137123745819,"#DDB8B3"],[0.344481605351171,"#DEB9B4"],[0.347826086956522,"#DFBBB6"],[0.351170568561873,"#E0BCB7"],[0.354515050167224,"#E0BDB9"],[0.357859531772575,"#E1BFBB"],[0.361204013377926,"#E2C0BC"],[0.364548494983278,"#E3C2BE"],[0.367892976588629,"#E3C3BF"],[0.37123745819398,"#E4C5C1"],[0.374581939799331,"#E5C6C2"],[0.377926421404682,"#E6C8C4"],[0.381270903010033,"#E6C9C6"],[0.384615384615385,"#E7CBC7"],[0.387959866220736,"#E8CCC9"],[0.391304347826087,"#E9CECA"],[0.394648829431438,"#E9CFCC"],[0.397993311036789,"#EAD1CD"],[0.40133779264214,"#EBD2CF"],[0.404682274247492,"#EBD4D1"],[0.408026755852843,"#ECD5D2"],[0.411371237458194,"#EDD7D4"],[0.414715719063545,"#EED8D5"],[0.418060200668896,"#EEDAD7"],[0.421404682274247,"#EFDBD9"],[0.424749163879599,"#F0DDDA"],[0.42809364548495,"#F0DEDC"],[0.431438127090301,"#F1E0DD"],[0.434782608695652,"#F2E1DF"],[0.438127090301003,"#F3E3E1"],[0.441471571906354,"#F3E4E2"],[0.444816053511706,"#F4E6E4"],[0.448160535117057,"#F5E7E6"],[0.451505016722408,"#F5E9E7"],[0.454849498327759,"#F6EAE9"],[0.45819397993311,"#F7ECEA"],[0.461538461538462,"#F7EDEC"],[0.464882943143813,"#F8EFEE"],[0.468227424749164,"#F9F0EF"],[0.471571906354515,"#F9F2F1"],[0.474916387959866,"#FAF4F3"],[0.478260869565217,"#FBF5F4"],[0.481605351170569,"#FBF7F6"],[0.48494983277592,"#FCF8F8"],[0.488294314381271,"#FDFAF9"],[0.491638795986622,"#FDFBFB"],[0.494983277591973,"#FEFDFD"],[0.498327759197324,"#FFFEFE"],[0.501672240802676,"#FEFEFF"],[0.505016722408027,"#FDFDFE"],[0.508361204013378,"#FCFBFD"],[0.511705685618729,"#FBFAFD"],[0.51505016722408,"#F9F8FC"],[0.518394648829431,"#F8F7FB"],[0.521739130434783,"#F7F6FB"],[0.525083612040134,"#F6F4FA"],[0.528428093645485,"#F4F3F9"],[0.531772575250836,"#F3F1F8"],[0.535117056856187,"#F2F0F8"],[0.538461538461538,"#F0EEF7"],[0.54180602006689,"#EFEDF6"],[0.545150501672241,"#EEEBF6"],[0.548494983277592,"#EDEAF5"],[0.551839464882943,"#EBE9F4"],[0.555183946488294,"#EAE7F4"],[0.558528428093645,"#E9E6F3"],[0.561872909698997,"#E8E4F2"],[0.565217391304348,"#E6E3F2"],[0.568561872909699,"#E5E1F1"],[0.57190635451505,"#E4E0F0"],[0.575250836120401,"#E3DFF0"],[0.578595317725752,"#E1DDEF"],[0.581939799331104,"#E0DCEE"],[0.585284280936455,"#DFDAEE"],[0.588628762541806,"#DED9ED"],[0.591973244147157,"#DCD8EC"],[0.595317725752508,"#DBD6EB"],[0.598662207357859,"#DAD5EB"],[0.602006688963211,"#D9D3EA"],[0.605351170568562,"#D7D2E9"],[0.608695652173913,"#D6D1E9"],[0.612040133779264,"#D5CFE8"],[0.615384615384615,"#D3CEE7"],[0.618729096989967,"#D2CCE7"],[0.622073578595318,"#D1CBE6"],[0.625418060200669,"#D0CAE5"],[0.62876254180602,"#CEC8E5"],[0.632107023411371,"#CDC7E4"],[0.635451505016722,"#CCC5E3"],[0.638795986622074,"#CBC4E3"],[0.642140468227425,"#C9C3E2"],[0.645484949832776,"#C8C1E1"],[0.648829431438127,"#C7C0E1"],[0.652173913043478,"#C6BEE0"],[0.655518394648829,"#C4BDDF"],[0.658862876254181,"#C3BCDE"],[0.662207357859532,"#C2BADE"],[0.665551839464883,"#C1B9DD"],[0.668896321070234,"#BFB8DC"],[0.672240802675585,"#BEB6DC"],[0.675585284280936,"#BDB5DB"],[0.678929765886288,"#BCB3DA"],[0.682274247491639,"#BAB2DA"],[0.68561872909699,"#B9B1D9"],[0.688963210702341,"#B8AFD8"],[0.692307692307692,"#B7AED8"],[0.695652173913043,"#B5ADD7"],[0.698996655518395,"#B4ABD6"],[0.702341137123746,"#B3AAD6"],[0.705685618729097,"#B2A9D5"],[0.709030100334448,"#B0A7D4"],[0.712374581939799,"#AFA6D3"],[0.71571906354515,"#AEA5D3"],[0.719063545150502,"#ACA3D2"],[0.722408026755853,"#ABA2D1"],[0.725752508361204,"#AAA0D1"],[0.729096989966555,"#A99FD0"],[0.732441471571906,"#A79ECF"],[0.735785953177257,"#A69CCF"],[0.739130434782609,"#A59BCE"],[0.74247491638796,"#A49ACD"],[0.745819397993311,"#A298CD"],[0.749163879598662,"#A197CC"],[0.752508361204013,"#A096CB"],[0.755852842809364,"#9F95CA"],[0.759197324414716,"#9D93CA"],[0.762541806020067,"#9C92C9"],[0.765886287625418,"#9B91C8"],[0.769230769230769,"#9A8FC8"],[0.77257525083612,"#988EC7"],[0.775919732441472,"#978DC6"],[0.779264214046823,"#968BC6"],[0.782608695652174,"#948AC5"],[0.785953177257525,"#9389C4"],[0.789297658862876,"#9287C4"],[0.792642140468227,"#9186C3"],[0.795986622073579,"#8F85C2"],[0.79933110367893,"#8E83C2"],[0.802675585284281,"#8D82C1"],[0.806020066889632,"#8B81C0"],[0.809364548494983,"#8A80BF"],[0.812709030100334,"#897EBF"],[0.816053511705686,"#887DBE"],[0.819397993311037,"#867CBD"],[0.822742474916388,"#857ABD"],[0.826086956521739,"#8479BC"],[0.82943143812709,"#8278BB"],[0.832775919732441,"#8177BB"],[0.836120401337793,"#8075BA"],[0.839464882943144,"#7F74B9"],[0.842809364548495,"#7D73B9"],[0.846153846153846,"#7C72B8"],[0.849498327759197,"#7B70B7"],[0.852842809364548,"#796FB6"],[0.8561872909699,"#786EB6"],[0.859531772575251,"#776DB5"],[0.862876254180602,"#756BB4"],[0.866220735785953,"#746AB4"],[0.869565217391304,"#7369B3"],[0.872909698996655,"#7168B2"],[0.876254180602007,"#7066B2"],[0.879598662207358,"#6F65B1"],[0.882943143812709,"#6D64B0"],[0.88628762541806,"#6C63B0"],[0.889632107023411,"#6B61AF"],[0.892976588628763,"#6960AE"],[0.896321070234114,"#685FAD"],[0.899665551839465,"#675EAD"],[0.903010033444816,"#655CAC"],[0.906354515050167,"#645BAB"],[0.909698996655518,"#635AAB"],[0.91304347826087,"#6159AA"],[0.916387959866221,"#6058A9"],[0.919732441471572,"#5E56A9"],[0.923076923076923,"#5D55A8"],[0.926421404682274,"#5C54A7"],[0.929765886287625,"#5A53A7"],[0.933110367892977,"#5951A6"],[0.936454849498328,"#5750A5"],[0.939799331103679,"#564FA4"],[0.94314381270903,"#554EA4"],[0.946488294314381,"#534DA3"],[0.949832775919732,"#524BA2"],[0.953177257525084,"#504AA2"],[0.956521739130435,"#4F49A1"],[0.959866220735786,"#4D48A0"],[0.963210702341137,"#4C47A0"],[0.966555183946488,"#4A469F"],[0.969899665551839,"#49449E"],[0.973244147157191,"#47439E"],[0.976588628762542,"#45429D"],[0.979933110367893,"#44419C"],[0.983277591973244,"#42409B"],[0.986622073578595,"#413F9B"],[0.989966555183946,"#3F3D9A"],[0.993311036789298,"#3D3C99"],[0.996655518394649,"#3C3B99"],[1,"#3A3A98"]],"colorbar":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"thickness":23.04,"title":"Cor Value","titlefont":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"tickmode":"array","ticktext":["-1.0","-0.5","0.0","0.5","1.0"],"tickvals":[0,0.25,0.5,0.75,1],"tickfont":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"ticklen":2,"len":0.5}},"xaxis":"x","yaxis":"y","frame":null}],"layout":{"margin":{"t":37.4307458143075,"r":18.9954337899543,"b":50.7469412910239,"l":81.0958904109589},"plot_bgcolor":"rgba(235,235,235,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,0.497716894977169],"automargin":true,"type":"linear","autorange":false,"range":[0.4,8.6],"tickmode":"array","ticktext":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"tickvals":[1,2,3,4,5,6,7,8],"categoryorder":"array","categoryarray":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y2","title":"","hoverformat":".2f"},"yaxis":{"domain":[0.503044140030441,1],"automargin":true,"type":"linear","autorange":false,"range":[0.4,8.6],"tickmode":"array","ticktext":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"tickvals":[1,2,3,4,5,6,7,8],"categoryorder":"array","categoryarray":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":"","hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.497716894977169,"y0":0.503044140030441,"y1":1},{"type":"rect","fillcolor":"rgba(217,217,217,1)","line":{"color":"transparent","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":0.497716894977169,"y0":0,"y1":23.37899543379,"yanchor":1,"ysizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.502283105022831,"x1":1,"y0":0.503044140030441,"y1":1},{"type":"rect","fillcolor":"rgba(217,217,217,1)","line":{"color":"transparent","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0.502283105022831,"x1":1,"y0":0,"y1":23.37899543379,"yanchor":1,"ysizemode":"pixel"},{"type":"rect","fillcolor":"rgba(217,217,217,1)","line":{"color":"transparent","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","y0":0.503044140030441,"y1":1,"x0":0,"x1":23.37899543379,"xanchor":1,"xsizemode":"pixel"},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.497716894977169,"y0":0,"y1":0.496955859969559},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.502283105022831,"x1":1,"y0":0,"y1":0.496955859969559},{"type":"rect","fillcolor":"rgba(217,217,217,1)","line":{"color":"transparent","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","y0":0,"y1":0.496955859969559,"x0":0,"x1":23.37899543379,"xanchor":1,"xsizemode":"pixel"}],"annotations":[{"text":"AMPeak","x":0.248858447488584,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"PMPeak","x":0.751141552511416,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"north_bound","x":1,"y":0.751522070015221,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":90,"xanchor":"left","yanchor":"middle"},{"text":"south_bound","x":1,"y":0.248477929984779,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":90,"xanchor":"left","yanchor":"middle"}],"xaxis2":{"type":"linear","autorange":false,"range":[0.4,8.6],"tickmode":"array","ticktext":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"tickvals":[1,2,3,4,5,6,7,8],"categoryorder":"array","categoryarray":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-45,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.502283105022831,1],"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y2","title":"","hoverformat":".2f"},"yaxis2":{"type":"linear","autorange":false,"range":[0.4,8.6],"tickmode":"array","ticktext":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"tickvals":[1,2,3,4,5,6,7,8],"categoryorder":"array","categoryarray":["100th_88th","18th_23rd","23rd_Hewitt","4th_ramp","88th_grove","grove_4th","Hewitt_100th","ramp_14th"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0,0.496955859969559],"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":"","hoverformat":".2f"},"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"7aa820f23a2d":{"x":{},"y":{},"fill":{},"type":"heatmap"}},"cur_data":"7aa820f23a2d","visdat":{"7aa820f23a2d":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="in-summary" class="section level2">
+<h2>In summary</h2>
+<p>So in simple terms, with a few lines of code and way fewer data objects we were able to:</p>
+<blockquote>
+<ul>
+<li>Make subsets of our data as defined by our grouping variables<br />
+</li>
+<li>Make a compact, single nested data fram to hold our subsets and apply functions to it<br />
+</li>
+<li>Unnest that nested list-column object to make a dataframe</li>
+</ul>
+</blockquote>
+<p>When working with data in R, consider using purrr and nested data frames with list columns over traditional methods. Here’s why:”</p>
+<ul>
+<li><code>Simplified Code</code>: Cleaner and more concise code.</li>
+<li><code>Structured Data</code>: Organized and structured storage of related data.</li>
+<li><code>Efficiency</code>: Efficient function application with purrr.</li>
+<li><code>Dynamic Input Handling</code>: Handling dynamic inputs is straightforward.</li>
+<li><code>Better Integration</code>: Seamless integration with Tidyverse tools.</li>
+<li><code>Improved Readability</code>: Enhances code readability.</li>
+<li><code>Easier Debugging</code>: Simplified debugging due to structured data.</li>
+<li><code>Scalability</code>: Scales well for larger datasets and multiple factors.</li>
+<li><code>Maintainability</code>: Easier management of a single nested data frame.</li>
+<li><code>Community and Documentation:</code> Strong support and extensive documentation.</li>
+<li><code>Fucntion-izable Code</code>: More concise, robust code can be <em>functionalized</em> and reused</li>
+</ul>
+</div>
+</div>
+<div id="additional-offerings" class="section level1">
+<h1>Additional Offerings</h1>
+<p>This section is intended to get you interested in using purrr but no go into detail…</p>
+<div id="custom-metic-summarization-function" class="section level2">
+<h2>Custom Metic Summarization Function</h2>
+<p>Apply <code>DescTools::Quantile()</code> function many times (given user specified qunatils) to segment travel time metric and create many attributes.</p>
+<pre class="r"><code>quantiles &lt;- seq(0, 1, .25)
+
+data_qunatiles &lt;- data %&gt;%
+  group_by(segement_name, flag_peak, direction_id) %&gt;%
+  summarize(across(time_diff,
+    purrr::map(
+      quantiles,
+      ~ purrr::partial(DescTools::Quantile,
+        probs = .x
+      )
+    ),
+    .names = &quot;{.col}_qt_{quantiles}&quot;
+  )) %&gt;%
+  ungroup()</code></pre>
+<pre class="r"><code>glimpse(data_qunatiles)</code></pre>
+<pre><code>## Rows: 32
+## Columns: 8
+## $ segement_name     &lt;fct&gt; Hewitt_100th, Hewitt_100th, Hewitt_100th, Hewitt_100~
+## $ flag_peak         &lt;chr&gt; &quot;AMPeak&quot;, &quot;AMPeak&quot;, &quot;PMPeak&quot;, &quot;PMPeak&quot;, &quot;AMPeak&quot;, &quot;A~
+## $ direction_id      &lt;chr&gt; &quot;north_bound&quot;, &quot;south_bound&quot;, &quot;north_bound&quot;, &quot;south_~
+## $ time_diff_qt_0    &lt;dbl&gt; 961.0000, 899.0000, 1022.0000, 901.0139, 91.0000, 10~
+## $ time_diff_qt_0.25 &lt;dbl&gt; 1168.7500, 1141.0000, 1517.0000, 1412.7500, 150.0000~
+## $ time_diff_qt_0.5  &lt;dbl&gt; 1240.0, 1246.0, 1712.0, 1502.0, 176.5, 159.0, 240.0,~
+## $ time_diff_qt_0.75 &lt;dbl&gt; 1321.50, 1383.00, 1797.00, 1659.50, 184.50, 192.00, ~
+## $ time_diff_qt_1    &lt;dbl&gt; 1472.0000, 1583.0000, 2273.0000, 2013.0000, 240.0000~</code></pre>
+<p>For bonus points, functionalize it!</p>
+<pre class="r"><code>make_stats &lt;- function(data, grp_c = c(&quot;segement_name&quot;, &quot;flag_peak&quot;, &quot;direction_id&quot;),
+                       quantiles = seq(0, 1, 0.05)) {
+  data %&gt;%
+    group_by(across({{ grp_c }})) %&gt;%
+    summarize(across(time_diff, purrr::map(
+      quantiles,
+      ~ purrr::partial(DescTools::Quantile, probs = .x)
+    ),
+    .names = &quot;{.col}_qt_{quantiles}&quot;
+    )) %&gt;%
+    ungroup()
+}
+
+make_stats(data, grp_c = &quot;direction_id&quot;, quantiles = c(.5, .95)) %&gt;%
+  glimpse()</code></pre>
+</div>
+<div id="scrape-mulitple-urls" class="section level2">
+<h2>Scrape Mulitple URLs</h2>
+<p>Take two lists of items, supply them to pmap (multiple-map) and scape data tables on site.</p>
+<p>Notice that I can make intermediate data objects during the p-mapping operation, that won’t be saved to disk at the end.</p>
+<p>You will be left with a list containing four dataframes.</p>
+<pre class="r"><code>library(rvest)
+library(tidyverse)
+
+# URL to scrape
+url_list &lt;- list(
+  running_backs = &quot;https://www.fantasypros.com/nfl/advanced-stats-rb.php?range=full&quot;,
+  running_backs_rz = &quot;https://www.fantasypros.com/nfl/red-zone-stats/rb.php?range=full?range=full&quot;,
+  wide_rec = &quot;https://www.fantasypros.com/nfl/advanced-stats-wr.php?range=full&quot;,
+  wide_rec_rz = &quot;https://www.fantasypros.com/nfl/red-zone-stats/wr.php?range=full?range=full&quot;
+)
+
+processed &lt;- list(
+  url_list,
+  names(url_list)
+) %&gt;%
+  pmap(function(x, y) {
+    webpage &lt;- read_html(x) %&gt;%
+      html_node(&quot;#data&quot;) %&gt;% # Replace with the appropriate CSS selector
+      html_table() %&gt;%
+      data.frame()
+
+    colnames(webpage) &lt;- webpage[2, ]
+    webpage &lt;- webpage[-c(1, 2), ]
+
+    element_text &lt;- webpage %&gt;%
+      janitor::clean_names() %&gt;%
+      mutate(across(c(contains(&quot;pct&quot;), contains(&quot;_percent&quot;)), ~ as.numeric(gsub(&quot;%&quot;, &quot;&quot;, .)))) %&gt;%
+      mutate_at(
+        .vars = setdiff(names(.), &quot;player&quot;),
+        .funs = as.numeric
+      ) %&gt;%
+      separate(col = &quot;player&quot;, into = c(&quot;player&quot;, &quot;team&quot;), sep = &quot; \\(&quot;) %&gt;%
+      mutate(
+        team = str_remove_all(team, &quot;[[:punct:]]&quot;),
+        label = str_glue(&quot;{player}&quot;)
+      ) %&gt;%
+      mutate(data = y)
+
+    print(element_text)
+
+    Sys.sleep(2)
+
+    return(element_text)
+    # return(list(element_text, webpage)) #if you want to return multiple subobjects
+  })</code></pre>
+</div>
+</div>

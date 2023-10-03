@@ -1,0 +1,424 @@
+---
+title: "Clean that Code up with purrr"
+author: "Mike Gaunt"
+date: "2023-10-02"
+output:
+  html_document:
+    df_print: paged
+categories:
+- R
+- Programming
+tags:
+- purrr
+- vectorization
+- programming
+description: Efficient programming using vectorization and the tidyverse.
+image: null
+math: null
+license: null
+hidden: no
+comments: yes
+slug: "purrr-correlation-plots"
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = F, warning = FALSE, message = FALSE
+                      ,dpi = 300, cache.lazy = FALSE,
+                      tidy = "styler", fig.width = 4, fig.height = 3)
+```
+
+```{r echo=FALSE, message=FALSE}
+data = readRDS(
+  here::here(
+    "content/post"
+    ,"2023-10-02-purrr-correlation-plots"
+    ,"data_travel_times.rds"))
+```
+ 
+This blog serves as a brief tutorial on how to utilize the `purrr` package by our studio to streamline and simplify complex or repetitive sections of code.
+
+# Background
+
+One major advantage of working with us is the ability to leverage the power of the Tidyverse R package environment. This package environment, developed by RStudio, is designed to enhance the usability of R. 
+
+An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R. `purrr` is one of these packages aimed at: 
+
+> <center>enhancing R's functional programming (FP) toolkit by providing a complete and consistent set of tools for working with functions and vectors.</center>
+
+If this is your first encounter with vectorization in R, don't worry. In essence, it's a faster alternative to for loops. It involves iteratively providing a function with data and applying that function repeatedly to various subsets of the data. This concept is similar to using `apply`, `lapply`, or `sapply` in base R.
+
+# Tutorial Data 
+
+The data we will use in this tutorial is a data frame that records the travel times of buses for specific sections along a bus route.
+
++ `trip_id`: Records a unique trip sequence, which we will not use for this tutorial.
++ `direction_id`: Indicates the direction the bus is heading.
++ `route_id`, `date_time`, and `vehicle_id`: Not used in this tutorial.
++ `segment`, `segment_name`, and `segment_type`: Attributes that describe the segment the bus is currently traveling over.
++ `time_diff`: Records the segment travel time - what we are investigating.
++ `flag_peak`: Indicates the time of day.
++ `time_diff_pct`: A calculated attribute indicating what percentage of an individual travel time segment is in proportion to a bus's total route travel time - also what we are investigating.
+
+Take a look:
+```{r echo=FALSE}
+print(head(data))
+```
+
+Since we are only concerned with travel time given the time-of-day and direction of travel, any attribute describing a unique bus, route, trip id, or timestamp when the measurement was recorded will be aggregated away. 
+
+# Tutorial Packages 
+The chunk below shows which packages will be using for this tutorial. 
+
+I suggest doing the 
+
+```{r echo=T, message=FALSE}
+require(tidyverse) #entire tidyverse package suite - including purrr, dplyr, ggplot, etc
+require(magrittr) #for code piping
+require(lubridate) #for working with dates and datetimes
+```
+
+# Tutorial 
+
+To address our problem statement, we have chosen to investigate how each segment's travel time correlates with one another, along with the total route travel time. 
+
+In essence, we aim to create a correlation matrix using the `stats::cor()` function, considering the time of day and direction of travel as factors in our analysis. And to top it all off, we want to interact with these correlation matrices via a visualization. 
+
+So first we apply some initial data processing to have our base working data.
+
+```{r}
+data_processed = data %>%
+  # filter(segement_name != "Hewitt_100th") %>%
+  filter(wday(date_time) %in% c(3, 4, 5)) %>% #grab only T, W, and TR
+  pivot_wider(id_cols = c('trip_id', 'direction_id', 'route_id', 'vehicle_id', 'flag_peak')
+              ,names_from = 'segement_name'
+              ,values_from = 'time_diff_pct') #convert from long to wide - data 
+
+```
+
+## Common Pitfalls 
+
+Typically, individuals create separate data frame objects for various combinations of analysis factors. 
+
+In our case, we have two factors for:
+
++ `time of day`: AM and PM Peak 
++ `direction of travel`: Southbound and Northbound
+
+This results in four distinct factor combinations for our correlation matrices.
+
+As seen below: 
+
+```{r}
+cor_am_nb = data_processed %>% 
+  filter(flag_peak == "AMPeak") %>%
+  filter(direction_id != "south_bound") %>%
+  select(!trip_id:flag_peak) %>% 
+  cor(use = "pairwise.complete.obs")
+
+cor_am_sb = data_processed %>% 
+  filter(flag_peak == "AMPeak") %>%
+  filter(direction_id != "south_bound") %>%
+  select(!trip_id:flag_peak) %>% 
+  cor(use = "pairwise.complete.obs")
+
+cor_pm_nb = data_processed %>% 
+  filter(flag_peak == "AMPeak") %>%
+  filter(direction_id != "south_bound") %>%
+  select(!trip_id:flag_peak) %>% 
+  cor(use = "pairwise.complete.obs")
+
+cor_pm_sb = data_processed %>% 
+  filter(flag_peak == "AMPeak") %>%
+  filter(direction_id != "south_bound") %>%
+  select(!trip_id:flag_peak) %>% 
+  cor(use = "pairwise.complete.obs")
+```
+
+And then run each data frame object through a ggplot code snippet or some other plotting function....
+
+Again, resulting in the creation of an additional four objects as outlined below:
+
+```{r eval=FALSE}
+cor_pm_sb_plot = cor_pm_sb %>% 
+  corrplot::corrplot(diag = T, type = "lower", method = 'color'
+                     ,order = 'hclust')
+
+cor_am_sb_plot = cor_am_sb %>% 
+  corrplot::corrplot(diag = F, type = "lower", method = 'color'
+                     ,order = 'hclust')
+
+#you get the idea
+```
+
+
+So what's the matter with this workflow..... a few things.
+
+Firstly, to create four plots, we end up with eight different data objects to manage. Handling such a large number of objects in your script can become unwieldy. Moreover, each object involves multiple filter statements and inputs that need precise copying and adjustments, leading to complex and cluttered code that can hinder your analysis.
+
+These problems become more pronounced when dealing with large datasets, numerous factor combinations, or comparing data objects created with different function inputs.
+
+A comment on for-loops:
+
+For loops may be the first solution to come to your mind, and they're not a bad option. However, when coding in R, they introduce additional issues, including the following advantages of vectorization:"
+
++ Clarity & Readability: Vectorization offers concise and readable code.
++ Performance: Vectorized operations are often faster, especially for large datasets.
++ Tidyverse Integration: Seamless integration with Tidyverse tools.
++ Parallel Processing: Potential for efficient multi-core processing.
++ Fewer Bugs: Reduced likelihood of off-by-one errors.
++ Ease of Debugging: Simplified debugging process.
++ Functional Programming: Aligns with R's functional programming paradigm.
++ Efficient Memory Usage: Minimizes unnecessary object creation.
++ Consistency: Ensures uniform behavior across data types.
+
+
+## The Optimal Solution
+
+How can we improve this by using R specific solutions? We aim for robust, clean, easily interpretable, and concise code. To achieve this, we'll utilize the `nest()` and `map()` functions from the `purrr` package.
+
++ `nest()` creates a list-column of data frames, given specified grouping columns.  It's essentially a summarizing operation where you get one row for each group defined by non-nested columns.
++ `map()` is then used to apply functions to the list-column object
+
+### Step 1 
+---
+
+Define grouping variables and then nest the dataframe to a tibble.
+
+```{r}
+data_processed_nest = data_processed %>%  
+  group_by(flag_peak, direction_id) %>% 
+  nest()
+```
+
+Notice how each record is a unique `direction-time` pair and all of the other data has been compressed into a list-column representing the time travel segments given the direction and time they are for. 
+```{r}
+print(data_processed_nest)
+```
+
+You can actually see that there are a few more records in bout the PM peak subsets than in the AM.
+
+
+### Step 2
+---
+
+Apply a `function` to the subsetted data and make a new column that holds the ensuing objects....
+
+In this case, the function is all the code that falls between the curly `{...}` braces. 
+
+The `.x` represents the each subset of data that is held in the `data`column - it is like a `lambda` function in python.
+
+```{r}
+data_processed_nest_1 = data_processed_nest %>%  
+  mutate(cor = map(data
+                   ,~{
+                     
+                     .x %>% 
+                       select(!c(trip_id:vehicle_id)) %>%   
+                       cor(use = "pairwise.complete.obs") %>%
+                       data.frame() %>%
+                       rename_with(~str_remove_all(.x, "X")) %>%
+                       mutate(seg = row.names(.))
+                     
+                   }
+  ))
+
+print(data_processed_nest_1)
+```
+
+The `nest` object now has an additional `cor`column that contains the correlation matrix for each direction-time pair data subset. 
+
+### Step 3
+---
+
+Unnest and ungroup the object so that you have a single dataframe where each direction-time correlation matrix has been row-bound together. 
+
+```{r}
+data_unnested = data_processed_nest_1 %>% 
+  select(!data) %>% 
+  unnest(cols = cor) %>% 
+  ungroup()
+
+print(head(data_unnested, 9) %>% 
+        reactable::reactable())
+
+```
+
+# To Wrap Up 
+
+In summary it should look like this: 
+```{r}
+data_processed_nest = data_processed %>%  
+  group_by(flag_peak, direction_id) %>% 
+  nest() %>%  
+  mutate(cor = map(data
+                   ,~{
+                     
+                     .x %>% 
+                       select(!c(trip_id:vehicle_id)) %>%   
+                       cor(use = "pairwise.complete.obs") %>%
+                       data.frame() %>%
+                       rename_with(~str_remove_all(.x, "X")) %>%
+                       mutate(seg = row.names(.))
+                     
+                   }
+  )) %>% 
+  select(!data) %>% 
+  unnest(cols = cor) %>% 
+  ungroup()
+```
+
+
+And we can now use that object for our analysis.
+```{r}
+plot = data_processed_nest %>% 
+  pivot_longer(cols = !c(direction_id, flag_peak, seg)
+               ,names_to = "seg_1") %>%
+  mutate(cor_value = round(value, 2)) %>% 
+  ggplot() + 
+  geom_tile(aes(seg, seg_1, fill = cor_value)) + 
+  scale_fill_gradient2(limits = c(-1, 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+  
+  facet_grid(rows = vars(direction_id)
+             ,cols = vars(flag_peak )) + 
+  labs(fill = "Cor Value", x = "", y = "")
+
+interactive_object = plot %>% plotly::ggplotly()
+```
+
+```{r echo=FALSE}
+interactive_object
+```
+
+
+## In summary
+
+So in simple terms, with a few lines of code and way fewer data objects we were able to:   
+    
+> + Make subsets of our data as defined by our grouping variables   
++ Make a compact, single nested data fram to hold our subsets and apply functions to it  
++ Unnest that nested list-column object to make a dataframe  
+
+When working with data in R, consider using purrr and nested data frames with list columns over traditional methods. Here's why:"
+
++ `Simplified Code`: Cleaner and more concise code.
++ `Structured Data`: Organized and structured storage of related data.
++ `Efficiency`: Efficient function application with purrr.
++ `Dynamic Input Handling`: Handling dynamic inputs is straightforward.
++ `Better Integration`: Seamless integration with Tidyverse tools.
++ `Improved Readability`: Enhances code readability.
++ `Easier Debugging`: Simplified debugging due to structured data.
++ `Scalability`: Scales well for larger datasets and multiple factors.
++ `Maintainability`: Easier management of a single nested data frame.
++ `Community and Documentation:` Strong support and extensive documentation.
++ `Fucntion-izable Code`: More concise, robust code can be _functionalized_ and reused
+
+
+# Additional Offerings
+
+This section is intended to get you interested in using purrr but no go into detail...
+
+## Custom Metic Summarization Function
+
+Apply `DescTools::Quantile()` function many times (given user specified qunatils) to segment travel time metric and create many attributes.
+```{r}
+quantiles = seq(0, 1, .25)
+
+data_qunatiles = data %>%
+  group_by(segement_name, flag_peak, direction_id) %>%
+  summarize(across(time_diff
+                    ,purrr::map(quantiles,
+                                ~purrr::partial(DescTools::Quantile
+                                                ,probs = .x)),
+                    .names = "{.col}_qt_{quantiles}")) %>%
+    ungroup()
+```
+
+```{r}
+glimpse(data_qunatiles)
+```
+
+For bonus points, functionalize it! 
+```{r eval=FALSE}
+
+make_stats = function (data, grp_c = c("segement_name", "flag_peak", "direction_id"),
+                              quantiles = seq(0, 1, 0.05))
+{
+  data %>%
+    group_by(across({{grp_c}})) %>%
+    summarize(across(time_diff, purrr::map(quantiles,
+                                            ~purrr::partial(DescTools::Quantile, probs = .x)),
+                      .names = "{.col}_qt_{quantiles}")) %>%
+    ungroup()
+}
+
+make_stats(data, grp_c = "direction_id", quantiles = c(.5, .95)) %>% 
+  glimpse()
+```
+
+## Scrape Mulitple URLs
+
+Take two lists of items, supply them to pmap (multiple-map) and scape data tables on site.
+
+Notice that I can make intermediate data objects during the p-mapping operation, that won't be saved to disk at the end.
+
+You will be left with a list containing four dataframes. 
+
+```{r eval=FALSE}
+library(rvest)
+library(tidyverse)
+
+# URL to scrape
+url_list = list(
+  running_backs = "https://www.fantasypros.com/nfl/advanced-stats-rb.php?range=full"
+  ,running_backs_rz = "https://www.fantasypros.com/nfl/red-zone-stats/rb.php?range=full?range=full"
+  ,wide_rec = "https://www.fantasypros.com/nfl/advanced-stats-wr.php?range=full"
+  ,wide_rec_rz = "https://www.fantasypros.com/nfl/red-zone-stats/wr.php?range=full?range=full"
+)
+
+processed = list(
+  url_list
+  ,names(url_list)
+) %>%
+  pmap(function(x, y) {
+    
+    webpage = read_html(x) %>%
+      html_node("#data") %>%  # Replace with the appropriate CSS selector
+      html_table() %>%
+      data.frame()
+
+    colnames(webpage) = webpage[2, ]
+    webpage = webpage[-c(1, 2),]
+
+    element_text = webpage %>%
+      janitor::clean_names() %>%
+      mutate(across(c(contains("pct"), contains("_percent")), ~as.numeric(gsub("%", "", .)))) %>%
+      mutate_at(
+        .vars = setdiff(names(.), "player"),
+        .funs = as.numeric
+      ) %>%
+      separate(col = 'player', into = c("player", "team"), sep = " \\(") %>%
+      mutate(team = str_remove_all(team, "[[:punct:]]")
+             ,label = str_glue("{player}")) %>%
+      mutate(data = y)
+    
+    print(element_text)
+    
+    Sys.sleep(2)
+    
+    return(element_text)
+    # return(list(element_text, webpage)) #if you want to return multiple subobjects
+
+    
+  })
+```
+
+
+
+
+
+
+
+
+
+
