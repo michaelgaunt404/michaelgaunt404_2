@@ -1,5 +1,5 @@
 ---
-title: Client-Side Interactivite Visulations
+title: Up your plots with Plotly
 author: 'Mike Gaunt'
 date: '2021-09-11'
 slug: client-side-plot-interactivity

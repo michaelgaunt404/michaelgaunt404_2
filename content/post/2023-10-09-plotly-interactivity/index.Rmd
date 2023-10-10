@@ -1,0 +1,132 @@
+---
+title: plotly_interactivity
+author: ''
+date: '2023-10-09'
+slug: plotly-interactivity
+categories: []
+tags: []
+description: ~
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+# Unleashing Interactivity with Plotly in R: From Napping to Mapping
+
+## Introduction
+- Start with a relocatable anecdote about the importance of data visualization and how "napping" (we all need a break, right?) is relevant in this context.
+- Introduce the concept of data visualization in R and briefly mention the two main packages: ggplot2 and Plotly.
+  - Make a fun comparison: ggplot2 is like your classic pen-and-paper map, while Plotly is like having a magic wand that brings your maps to life with JavaScript.
+
+## The Power of JavaScript in Plotly
+- Explain why Plotly is a game-changer by bringing JavaScript into the mix.
+- Emphasize the magic of JavaScript for adding interactivity and reactivity to plots that would otherwise be static.
+  - Talk about how JavaScript allows your plots to respond to user interactions, like zooming, hovering, and clicking.
+  
+# Unleashing Interactivity with Plotly in R: From Napping to Mapping
+
+## Introduction
+I'm thrilled about creating visualizations in R 📊; it's one of my favorite starting points when diving into a new dataset. But here's the catch: as my analysis unfolds, I end up with a staggering number of plots... and things can get overwhelming. 🙈 This plot overload is usually driven by:
+
+- Data and plot hoarding, thanks to a bit of FOMO (fear of missing out).
+- Tracking my analysis journey through a trail of plots.
+- Trying out different combinations of variables.
+- Tweaking specific variables and plotting them again and again.
+
+In my quest for a solution, I discovered that interactive plots hold the key. They allow you to swiftly explore various variable combinations, which significantly reduces the number of plots you have to code. 🪄
+
+However, creating interactive plots can be a bit tricky and sometimes limits your options for sharing your work. In my experience, achieving interactivity often meant diving into Shiny app development, complete with server-side processing. 🏢
+
+Enter Plotly—a game-changer that elegantly tackles these challenges. It goes far beyond what `plotly::ggplotly()` can do and doesn't demand a server-side setup. 🚀
+
+In the rest of this blog post, I'll guide you through the art of crafting and deploying interactive client-side plots that liberate you from the world of Shiny dashboards and applications. 🌐
+
+Now, let's take a sneak peek at our destination. Below is a Plotly-generated plot with a dropdown filter—a feature that typically requires a server:
+
+![Plotly Example](example_plot.png)
+
+## Required Libraries and Data
+- **Libraries**: Before we embark on our journey, make sure you have the following R libraries installed:
+  - `ggplot2`: For traditional data visualization.
+  - `plotly`: Our magical wand for creating interactive visualizations.
+  - `reactable`: For combining with Plotly.
+  - `leaflet`: For creating interactive maps.
+  - `crosstalk`: For cross-widget communication.
+  
+```{r}
+require()
+```
+
+- **Data**: We'll use a sample dataset containing geographical coordinates (latitude and longitude) for our interactive mapping examples.
+
+## Static vs. Dynamic: Why Boring Plots Just Won't Cut It
+
+### Static Plots: The Boring Dilemma
+- Let's face it, static plots from ggplot2 can be a bit, well, dull. 🥱
+- While they serve their purpose for basic data visualization, they often fall short when it comes to making your data truly come alive.
+- Static plots may lack the pizzazz needed to explore your data thoroughly.
+- They're like a still image from a movie—informative but missing the action.
+
+### Limitations of Static Plots
+- What's the big deal about interactivity anyway? It's all about the details.
+- Static plots may lose valuable information by not offering features like point pop-ups, hover effects, and dynamic filtering.
+- When you're working in R and RMarkdown, your HTML documents have the potential for a lot of interactivity. By sticking to static plots, you're leaving a treasure trove of capabilities untapped.
+
+### Unleash the Power of Interactive Plots
+- This is where Plotly swoops in to save the day. 🦸‍♂️
+- Plotly doesn't just present your data; it lets you experience it. You can zoom, hover, click, and filter your way through your visualizations.
+- Get ready to uncover hidden insights, spot trends, and engage with your data like never before.
+
+Now that we've made our case for interactivity, let's dive into the world of Plotly and see how it transforms your data exploration.
+
+  
+```{r}
+require(ggplot2)
+require(plotly)
+require(reactable)
+require(leaflet)
+require(leaflet)
+require(crosstalk)
+```
+
+  
+- **Data**: We'll use a sample dataset containing geographical coordinates (latitude and longitude) for our interactive mapping examples.
+
+```{r}
+
+```
+
+
+
+
+
+## Traditional vs. Magical: ggplot2 vs. Plotly
+- Show a traditional way of plotting using ggplot2.
+  - Share a code snippet to create a simple static plot.
+- Now, let's spice it up! Introduce Plotly and create a similar plot but with interactive elements.
+  - Compare the two outputs and highlight how Plotly takes your visualizations to the next level.
+
+## Deep Dive into Plotly
+- Let's roll up our sleeves and explore Plotly's capabilities more deeply.
+- Discuss various inputs and customization options.
+  - Cover basics like scatter plots, line charts, and bar charts.
+  - Mention that we won't dive into every plot type (leave some excitement for readers).
+
+## Extending the Magic: Advanced Plotly
+### Part 1: Time Series Filtering and More
+- Share tips on extending Plotly's functionality using built-in features.
+- Explore time series filtering using Plotly's interactive elements.
+- Discuss the power of Plotly buttons for dynamic control.
+  
+### Part 2: Combining Plotly with Other Wizards
+- Talk about combining Plotly with other R packages.
+- Showcase how to use Plotly with packages like `reactable` and `leaflet`.
+- Highlight the Crosstalk package, which enables cross-widget communication and filtering.
+  - Explain how it enhances interactivity without the need for a full-fledged Shiny framework.
+
+## Wrapping It Up: Your Map Is Ready!
+- Summarize the journey from napping to mapping with Plotly.
+- Encourage readers to continue exploring and experimenting with interactive data visualizations.
+- Provide additional resources and references for further learning.
