@@ -1,0 +1,260 @@
+---
+title: "5 Minute Tutorials: Tricks with Purrr::map() #1"
+author: 'Mike Gaunt'
+date: '2023-10-13'
+slug: quickie-purrr
+categories: ["R", "Programming"]
+tags: ["purrr", "vectorization", '5Min Tutorials']
+description: "Use map to use functions on dataframes that you otherwise couldn't!"
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(digest)
+```
+
+```{r echo=FALSE, message=FALSE}
+apply_digest_to_column <- function(col) {
+  map_chr(col, ~digest(object = .x, algo = "crc32", serialize = FALSE))
+}
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#this chunk creates all of the objects for the tutorial 
+full_string_to_root = "C:/Users/USMG687637/Documents/080_projects/replica_data_requests"
+
+files = list.files(
+  full_string_to_root, recursive = TRUE
+           ,include.dirs  = T, all.files = T)
+
+# print(head(files))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+temp_data = data.frame(paths = c(files[str_detect(files, "\\.R$")]
+                     ,files[str_detect(files, "\\.r$")])) %>% 
+  separate(col = "paths", sep = "/", into = paste0("temp_", 1:6), remove  = F) %>% 
+  pivot_longer(cols = starts_with("temp")
+               ,values_to = "file_name") %>% 
+  filter(!is.na(file_name)) %>% 
+  mutate(name = parse_number(name)) %>% 
+  group_by(paths) %>% 
+  filter(name == max(name)) %>% 
+  ungroup() %>% 
+  mutate(paths = str_remove(paths, paste0("/", file_name))) %>% 
+  select(paths, file_name)
+
+temp_data_public =  temp_data %>%  
+    mutate(across(c(paths, file_name), apply_digest_to_column))  
+
+example_single = here::here(
+  full_string_to_root
+  ,temp_data$paths[1]
+  ,temp_data$file_name[1]) %>% 
+  file.info() 
+
+rownames(example_single) = "example_file_path_for_file"
+
+example_df = temp_data %>% 
+  mutate(file_info = here::here(
+    full_string_to_root
+    ,temp_data$paths
+    ,temp_data$file_name) %>% 
+      file.info()) %>% 
+  mutate(across(c(paths, file_name), apply_digest_to_column))  
+
+# colnames(example_df)
+# colnames(example_df$file_info)
+
+example_df_pro =  example_df %>%  
+  select(paths, file_name) %>% 
+  bind_cols(
+    temp_data %>% 
+      mutate(info = map(
+        here::here(
+          full_string_to_root
+          ,paths
+          ,file_name), file.info)) %>% 
+      select(!c(paths, file_name)))
+
+example_df_pro_unnested = example_df_pro %>%  
+  unnest(cols = info)
+
+# colnames(example_df_pro_unnested)
+```
+
+
+# Quick Overview
+
+Hi hi!   
+This is intended to  be a very quick tutorial highlighting bite-sizeable and really helpful R tips. 
+
+## What are we looking at today
+
+I wanted to share how to use `purrr::map()` to apply function that produces more that one output (columns) to a dataframe.
+
+## How
+We ware going to make basic script that lists all files in a directory and its sub-directories that have a specific extension.   
+This was something that I needed to do at work and could not, for the life of me, find a file that I was looking for...
+
+## What you need 
+
+Libraries:
+```{r}
+library(tidyverse)
+```
+
+## Base Data
+
+The code below makes the datafame that we will use for this tutorial
+
+```{r eval=FALSE}
+full_string_to_root = "<<put a full path to a directory that has a lot of R scripts in it>>"
+
+#get all files in the root
+files = list.files(
+  full_string_to_root, recursive = TRUE
+           ,include.dirs  = T, all.files = T)
+
+#filter files for the root 
+#split file paths to separate the file path and name in different columns 
+#NOTE: this is wayyyyy more efficient with REGREX but I couldn't make it work
+temp_data = data.frame(paths = c(files[str_detect(files, "\\.R$")]
+                     ,files[str_detect(files, "\\.r$")])) %>% 
+  separate(col = "paths", sep = "/", into = paste0("temp_", 1:6), remove  = F) %>% 
+  pivot_longer(cols = starts_with("temp")
+               ,values_to = "file_name") %>% 
+  filter(!is.na(file_name)) %>% 
+  mutate(name = parse_number(name)) %>% 
+  group_by(paths) %>% 
+  filter(name == max(name)) %>% 
+  ungroup() %>% 
+  mutate(paths = str_remove(paths, paste0("/", file_name))) %>% 
+  select(paths, file_name)
+
+```
+
+# The actual tutorial
+
+So this is what my dataframe of files looks like...
+
+I hashed my files - randomly coded them - since they are sensitive:
+
+Yours should be something to the effect of `code folder` `script.R`. And it doesn't matter how deep your folder tree goes. 
+
+```{r }
+print(temp_data_public)
+```
+
+So this is cool, we listed all the files below our root director but the names alone don't tell us much. 
+
+To make it more useful, we will add columns indicating when it was made and last modified. 
+
+I'm going to do this by supplying the `file.info()` with a full path of each script in our DF via the `here::here()` function.
+
+It's easy for just one file at a time:
+```{r eval=F}
+here::here(
+  full_string_to_root
+  ,temp_data$paths[1]
+  ,temp_data$file_name[1]) %>% 
+  file.info() 
+```
+
+```{r echo = F}
+print(example_single)
+```
+
+And now we apply this to each record of our DF. 
+
+```{r eval=FALSE}
+example_df = temp_data %>% 
+  mutate(file_info = here::here(
+    full_string_to_root
+    ,temp_data$paths
+    ,temp_data$file_name) %>% 
+      file.info())
+```
+
+Take a look at what we just made:
+```{r echo=FALSE}
+example_df
+```
+
+Oops! It looks a little strange, the columns created by the `file.info()` function all have `$s` in front of them. 
+```{r}
+colnames(example_df)
+colnames(example_df$file_info)
+```
+
+Seems that we made a `file_info` column that has columns of its own... hmmmmmm.
+
+This is a common problem you can run into this when the function you apply to your DF produces multiple output columns.
+
+# The Fix
+
+The fix is rather simple, we will use `purrr::map()` to effectively make a nested column (much like the DF above) and unnest it to create a _normal_ looking DF.
+
+In essence, all you do is:
+
++ add a `map()` function in the `mutate()` function
++ supply the function with a column to run throught he function 
+  - Note in our case we are sending TWO columns and a string variable but they are collapsed together via the `here::here()` - which is created as one by the `map()`
++ define the function to augment the supplied column with
+
+```{r eval=FALSE}
+example_df_pro = temp_data %>% 
+  #start of the mutuate()
+  mutate(info = map(   #applying the map()
+    here::here(
+      full_string_to_root
+      ,paths
+      ,file_name)    #end of the first input, defining what we will map thru
+    ,file.info     #defining the function to apply - note: we do not include `()`
+  )
+  )
+```
+
+And it looks like this:
+```{r}
+example_df_pro
+```
+
+Similar to the first DF that we made but we no can see the size of the DF that is in each info record. 
+
+We can expand this by running it through `unnest()`
+
+```{r eval=F}
+example_df_pro_unnested = example_df_pro %>%  
+  unnest(cols = info)
+```
+
+```{r echo=FALSE}
+example_df_pro_unnested
+```
+
+And you can see that we fixed the column issue....
+```{r}
+colnames(example_df_pro_unnested)
+```
+
+
+# Parting words
+
+So why do this?!??!? 
+
+For a few reasons: 
+
++ to be able to deploy functions that have multiple outputs to a dataframe without creating a weird DF structure
++ nesting DFs are a really great way to keep many augmentations to a DF in the same location
+  - a lot of novices will do something to a DF and save it as a separate object 
+  - this can confuse code, make it difficult to track objects for analysis
+  - this one object can be then saved as an RDS object! cool!
+  
+Good luck and thanks for checking this out!
+

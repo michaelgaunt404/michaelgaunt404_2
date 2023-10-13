@@ -13,6 +13,25 @@ hidden: no
 comments: yes
 ---
 
+<style>
+  .custom-column {
+    flex: 1;
+    text-align: left;
+    padding: 10px;
+  }
+</style>
+
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, message = FALSE
+                      ,echo = T, cache.lazy = FALSE,
+                      tidy = "styler"
+                      # , fig.width = 3, fig.height = 2, dpi = 300
+                      )
+```
+
+
 # Unleashing Interactivity with Plotly in R: From Napping to Mapping
 
 ## Introduction
@@ -28,26 +47,25 @@ comments: yes
 # Unleashing Interactivity with Plotly in R: From Napping to Mapping
 
 ## Introduction
-I'm thrilled about creating visualizations in R 📊; it's one of my favorite starting points when diving into a new dataset. But here's the catch: as my analysis unfolds, I end up with a staggering number of plots... and things can get overwhelming. 🙈 This plot overload is usually driven by:
+I really like making plots in R 📊; it's one of the first things I do when diving into a new dataset, and R and its many packages make it extremely easy. But alas, there is **_no free lunch_** and at some point in my analysis, I come to a screetching halt.  as my analysis unfolds, I end up with a staggering number of plots... and things can get overwhelming. 🙈 This plot overload is usually driven by:
 
-- Data and plot hoarding, thanks to a bit of FOMO (fear of missing out).
+- Data object and plot hoarding, thanks to a bit of FOMO (fear of missing out).
 - Tracking my analysis journey through a trail of plots.
-- Trying out different combinations of variables.
+- Trying out different combinations of variables for a plot and creating NxM plots.
 - Tweaking specific variables and plotting them again and again.
 
-In my quest for a solution, I discovered that interactive plots hold the key. They allow you to swiftly explore various variable combinations, which significantly reduces the number of plots you have to code. 🪄
+In addition, I've found that static plots generally turn out pretty boring.....
 
-However, creating interactive plots can be a bit tricky and sometimes limits your options for sharing your work. In my experience, achieving interactivity often meant diving into Shiny app development, complete with server-side processing. 🏢
+In my quest for a solution, I discovered that interactive plots hold the key. They allow you to swiftly explore various variable combinations, which significantly reduces the number of plots you have to code and retain information that is lost via static plots.  
 
-Enter Plotly—a game-changer that elegantly tackles these challenges. It goes far beyond what `plotly::ggplotly()` can do and doesn't demand a server-side setup. 🚀
+But another complication! In my experience, achieving interactivity often meant diving into Shiny app development, complete with server-side processing.
+
+Enter Plotly—a game-changer that elegantly tackles these challenges. It goes far beyond what ggplot2 and doesn't demand a server-side setup (Shiny). 🚀
 
 In the rest of this blog post, I'll guide you through the art of crafting and deploying interactive client-side plots that liberate you from the world of Shiny dashboards and applications. 🌐
 
-Now, let's take a sneak peek at our destination. Below is a Plotly-generated plot with a dropdown filter—a feature that typically requires a server:
+### Required Libraries and Data
 
-![Plotly Example](example_plot.png)
-
-## Required Libraries and Data
 - **Libraries**: Before we embark on our journey, make sure you have the following R libraries installed:
   - `ggplot2`: For traditional data visualization.
   - `plotly`: Our magical wand for creating interactive visualizations.
@@ -56,33 +74,7 @@ Now, let's take a sneak peek at our destination. Below is a Plotly-generated plo
   - `crosstalk`: For cross-widget communication.
   
 ```{r}
-require()
-```
-
-- **Data**: We'll use a sample dataset containing geographical coordinates (latitude and longitude) for our interactive mapping examples.
-
-## Static vs. Dynamic: Why Boring Plots Just Won't Cut It
-
-### Static Plots: The Boring Dilemma
-- Let's face it, static plots from ggplot2 can be a bit, well, dull. 🥱
-- While they serve their purpose for basic data visualization, they often fall short when it comes to making your data truly come alive.
-- Static plots may lack the pizzazz needed to explore your data thoroughly.
-- They're like a still image from a movie—informative but missing the action.
-
-### Limitations of Static Plots
-- What's the big deal about interactivity anyway? It's all about the details.
-- Static plots may lose valuable information by not offering features like point pop-ups, hover effects, and dynamic filtering.
-- When you're working in R and RMarkdown, your HTML documents have the potential for a lot of interactivity. By sticking to static plots, you're leaving a treasure trove of capabilities untapped.
-
-### Unleash the Power of Interactive Plots
-- This is where Plotly swoops in to save the day. 🦸‍♂️
-- Plotly doesn't just present your data; it lets you experience it. You can zoom, hover, click, and filter your way through your visualizations.
-- Get ready to uncover hidden insights, spot trends, and engage with your data like never before.
-
-Now that we've made our case for interactivity, let's dive into the world of Plotly and see how it transforms your data exploration.
-
-  
-```{r}
+require(tidyverse)
 require(ggplot2)
 require(plotly)
 require(reactable)
@@ -91,34 +83,337 @@ require(leaflet)
 require(crosstalk)
 ```
 
-  
-- **Data**: We'll use a sample dataset containing geographical coordinates (latitude and longitude) for our interactive mapping examples.
+- **Data**: We'll use a sample dataset containing geographical coordinates (latitude and longitude) for our interactive mapping examples.  
 
 ```{r}
+location = 'https://raw.githubusercontent.com/michaelgaunt404/michaelgaunt404_2/master/content/post/2023-10-09-plotly-interactivity'
+
+files = c("data_speed_pro_new.rds"
+         ,"data_speed_pro_stats.rds")
+
+downloaded_data = files %>% 
+  map(~{
+    download.file(paste0(location, "/", .x), "temp.rds", method="curl")
+    readRDS("temp.rds")
+  })
+
+data_speed_pro_stats = downloaded_data[[2]]
+data_speed_pro_new = downloaded_data[[1]]
 
 ```
 
+`data_speed_pro_stats` is an aggregation table details travel speed metrics for each segment/direction/peak-time combination. e.g. record count, average speed and speed variance for buses that travel along some segment given their direction and time of day.   
+
+`data_speed_pro_new` details unique bus movements _snapped_ to 50m long route segments (points). Additionally, it has a bunch of `speed_avg_%%` columns which detail travel speed segment speed metrics for each segment/direction/peak time combination.  
+
+See below:
+
+## {.tabset}
+
+### data_speed_pro_stats
+```{r echo=FALSE}
+data_speed_pro_new %>%
+  head(10) %>% 
+  glimpse()
+```
+
+### data_speed_pro_new
+```{r echo=FALSE}
+data_speed_pro_new %>%
+  head(10) %>% 
+  glimpse()
+```
+
+## {-}
+
+## Static vs. Dynamic: Why Boring Plots Just Won't Cut It  
+
+### Static Plots: The Boring Dilemma 
+
+"So why can't I use ggplot2?" Long story short - you can and I do all the time.    
+   
+But going the plotly route in some situations can totally wow your colleagues and clients and make your work easier to get value out of.     
+
+Without going in to a long preamble I will simply show you as to why.  
+
+```{r echo=FALSE}
+windows = c(1, 3, 5, 7)
+
+temp_processed = data_speed_pro_stats %>%
+  pivot_longer(cols = c("speed_avg_mean", contains("_qt_"))
+               ,names_to = "speed_quantile") %>%
+  filter(speed_quantile %in% c('speed_avg_mean', 'speed_avg_qt_0.05'  
+                               ,'speed_avg_qt_0.5', 'speed_avg_qt_0.95')) %>%
+  filter(direction_id == "north_bound") %>% 
+  group_by(flag_peak_time, speed_quantile) %>%  
+  mutate(across(
+    value
+    ,purrr::map(windows
+                ,~purrr::partial(zoo::rollmean, k = .x, align = "center", na.pad = T))
+    ,.names = "MA_{windows}")) %>% 
+  ungroup() %>% 
+  pivot_longer(cols = contains("MA")
+               ,names_to = "smoothing_window"
+               ,values_to = "value_sm") %>% 
+  select(index:direction_id, speed_quantile, smoothing_window, value_sm) %>% 
+  mutate(speed_quantile = str_remove(speed_quantile, "speed_avg_")
+         ,label = str_glue("Seg Speed: {gauntlet::dgt2(value_sm)} ({smoothing_window})\nStatistic: {speed_quantile}\n{direction_id}\nRoute Segement: {index}"))
+
+plot_data = temp_processed %>% 
+  filter(smoothing_window == "MA_3") %>%
+  filter(flag_peak_time == "PM Peak") %>%
+  filter(direction_id == "north_bound")  
+```
+
+### {.tabset}
+
+#### Using ggplot baese
+```{r }
+plot_data %>% 
+  ggplot() + 
+  geom_line(aes(index, value_sm, color = speed_quantile))
+```
+
+#### Using ggplot
+```{r dpi=100}
+plot_data %>% 
+  ggplot() + 
+  geom_line(aes(index, value_sm, color = speed_quantile))
+```
+
+#### Using ggplot dpi 300
+```{r dpi = 300}
+plot_data %>% 
+  ggplot() + 
+  geom_line(aes(index, value_sm, color = speed_quantile))
+```
+
+#### Using ggplot 500
+```{r dpi=500}
+plot_data %>% 
+  ggplot() + 
+  geom_line(aes(index, value_sm, color = speed_quantile))
+```
+
+#### Using plotly
+```{r}
+plot_data %>% 
+  plot_ly(x=~index, y = ~value_sm, color = ~speed_quantile
+          ,type = "scatter",  mode = 'lines'
+          ,text = ~label, hoverinfo = 'text'
+  ) 
+```
+### {-}
+
+A couple things to highlight:   
+
+- The ggplot plot is _good_ but it looks a little like a bunch of squiggles. 
+  - This might look better if you facet the different traces but you really want to compare them to each other    
+- With plotly - out of the box you get:  
+  - All of the buttons in the upper right hand corner, so zoom, pan, download, etc.  
+  - Turn on and off plot layers/traces for clarity or focus  
+- In addition, with TWO extra inputs you get popups which are vital to help:   
+  - Track what you're looking at - (sometimes I forget what I'm looking at)   
+  - Include information that otherwise require an additional plot  
+
+TLDR; Static plots may lose valuable information by not offering features like point pop-ups, hover effects, and dynamic filtering.   
+
+When you're working in R and RMarkdown, your HTML documents have the potential for a lot of interactivity. By sticking to static plots, you're leaving a treasure trove of capabilities untapped.   
+
+So you've been evangelized and you just can't wait to learn plotly, great!
 
 
 
 
-## Traditional vs. Magical: ggplot2 vs. Plotly
-- Show a traditional way of plotting using ggplot2.
-  - Share a code snippet to create a simple static plot.
-- Now, let's spice it up! Introduce Plotly and create a similar plot but with interactive elements.
-  - Compare the two outputs and highlight how Plotly takes your visualizations to the next level.
 
 ## Deep Dive into Plotly
-- Let's roll up our sleeves and explore Plotly's capabilities more deeply.
-- Discuss various inputs and customization options.
-  - Cover basics like scatter plots, line charts, and bar charts.
-  - Mention that we won't dive into every plot type (leave some excitement for readers).
+ 
+Let's roll up our sleeves and explore plotly's capabilities more deeply. 
+
+Your hands down best resource to learning plotly will be the [plotly site](https://plotly.com/r/), 
+SERIOUSLY, this is an amazing resource. 
+
+In not way I'll touch the awesomeness of that site but I can show you some tips and tricks that can quickly unlock a fair amount of what plotly has to offer.  
+
+### Basic Plotting 
+
+Below is a basic plot - it is somewhat similar to ggplot with some differences. 
+
+```{r}
+plot_data %>% 
+  plot_ly(
+    x=~index, y = ~value_sm, color = ~speed_quantile
+    ,type = "scatter",  mode = 'markers'
+  ) 
+```
+
+The `plot_ly()` function is the main function that you dump your inputs into. 
+
+Attribute inputs require a `~` in front of them (I don't know why, just do it) and the _geom_, to use a ggplot term, is determined by the `type` and mode `inputs`. 
+
+In addition, plotly uses magrittr pipes across different functions which is different thatn ggplot and using a `+` to slowly add layers up.   
+
+```{r}
+plot_data %>% 
+  plot_ly(
+    x=~index, y = ~value_sm, color = ~speed_quantile
+    ,type = "scatter",  mode = 'lines'
+  ) %>%
+  layout(
+    title = 'Styled Line Plot'
+    ,yaxis = list(
+      range = c(0, max(plot_data$value_sm, na.rm = T)*2)
+      ,titlefont = list(size = 30)
+      ,title = "Changed Y Axis"
+    )
+    ,xaxis = list(
+      title = "Changed X Axis"
+    )
+  )
+```
+
+I added a `layout()` function so I can start defining other parts of the plot like axis titles and ranges. I also changed the mode to _lines_ to show you how to flip from a point to line plot. 
+All in all its pretty simple but the devil is in the details. You can see that the `layout()` call gets pretty complex/messy quickly. 
+
+This is because plotly heavily relies on _lists_ to receive/hold plot inputs. This is a little different and harder to intuit than ggplot. Ggplot has nice functions that automatically apply aesthetics to your plot without needing to explicitly state them. Furthermore, `lists` of aesthetic inputs can become deeply nested which can make reading code difficult and potentially increase the chance of bugs by not properly closing brackets or leaving out commas.  
+
+### Popups 
+
+Popup boxes are one of the easier value-unlocks to do with plotly. 
+
+All you need to do is make the label for each record in your data - you can either use the tried-and-true `paste()` or `stringr::str_glue()` (you should be using the latter). 
+
+Once you do so you, you need to define both the `text` and the `hoverinfo` inputs in the `plot_ly()` function. 
+
++ `text`: is defined with a `~` as like the other values 
++ `hoverinfo`: always is set to _text_ as a string (i don't know why, just do it)
+
+See below: 
+```{r}
+plot_data %>% 
+  mutate(label_new = "New Label with value {value_sm}") %>% 
+  plot_ly(
+    x=~index, y = ~value_sm, color = ~speed_quantile
+    ,type = "scatter",  mode = 'markers'
+    ,text = ~label_new, hoverinfo = "text"
+  ) 
+```
+
+To take your popups to the next level you can add HTML (yikes!) to the the label that you make. 
+
+I'm not going to cover HTML in this tutorial but I'll show you some basic HTML in the example below and that will probably get you most of the way there. 
+
+```{r}
+plot_data %>% 
+  mutate(label_new = str_glue("<em>Title</em><br>Value: {round(value_sm, 0)}")) %>% 
+  plot_ly(
+    x=~index, y = ~value_sm, color = ~speed_quantile
+    ,type = "scatter",  mode = 'markers'
+    ,text = ~label_new, hoverinfo = "text"
+  ) 
+```
+
+
+### Faceting 
+
+One of the biggest absolute headaches with plotly is faceting plots, the way ggplot does it is just hands down better given its simplicity. 
+
+```{r}
+#plotting moving average 3 for average and selected quantile speeds for AM/PM Peaks 
+temp_processed %>%  
+  filter(smoothing_window == "MA_3") %>%
+  filter(flag_peak_time != "Midday") %>%
+  ggplot() + 
+  geom_line(aes(index, value_sm, color = speed_quantile)) +
+  facet_grid(rows = vars(flag_peak_time))
+```
+
+However; with a bit of planning you can get the same results. 
+
+This technique requires two steps:   
+
++ `Step 1`: use `group_map()` to apply your `plot function` to subsets of your data. 
+  - We define our plot in the `{}` in the group map function and then apply it to subsets of our data defined by the period of the day in `group_by(flag_peak_time)`.   
+  - In plain English it is, "make a plot of the AM data and then make a plot using the PM data and save in a list". 
++ `Step 2`: Take every plot in the list that we made and insert it into the `subplot()` function to create a single object 
+
+```{r}
+#Step 1
+plot_temp = temp_processed %>%  
+  filter(smoothing_window == "MA_3") %>%
+  filter(flag_peak_time != "Midday") %>% 
+  group_by(flag_peak_time) %>%
+  group_map(~{
+    
+    #start of plotting 'function'
+    plot_ly(.x
+            ,x=~index, y = ~value_sm, color = ~speed_quantile, legendgroup = ~speed_quantile
+            ,text = ~label, hoverinfo = 'text'
+            ,type = "scatter",  mode = 'lines', showlegend = (.y == "AM Peak")
+    ) %>% 
+      layout(
+        yaxis = list(
+          titlefont = list(size = 11)
+          ,title = paste0(
+            c(rep("&nbsp;", 20),
+              paste("<b>", as.character(.y), "</b>"),
+              rep("&nbsp;", 20)),
+            collapse = "")
+        ))
+    #end of plotting 'function'
+    
+  })
+
+#Step 2
+subplot(
+  list(plot_temp[[1]], plot_temp[[2]]), which_layout = "merge"
+  ,nrows = 2, margin = .05, shareX = T, shareY = T, titleY = T) %>%
+  rangeslider() %>%
+  layout(
+    showlegend = T
+    ,xaxis = list(title = "Route Segement Number")
+  )
+
+```
+
+Again, a few things to point out.....  
+
+Yes, this is more code and does require additional, more advanced techniques in R - namely, using lists, and mapping (the purrr kind not the GIS kind). Going into detail on either of those two last points is beyond the scope of this tutorial but they are invaluable tools that you need to learn.  
+
+Despite these hurdles, you go get a pretty good looking plot with some awesome features - range slider window, popups, zoom functionality, etc.  
+
+In terms fo code, here are a few things to keep an eye out for....  
+
++ `defining legendgroup`: this needs to be the same attribute that you are coloring your data with 
+  - plotly will just add each legend to the plot via the `subplot()` function and we don't want duplicate legends 
+  - this input with setting `which_layout = "merge"` in `subplot()` will ensure all subplot legend are  merged to one and _talk_ to each other 
++ Labeling each subplot 
+  - This is can be tricky and adds to the code ugliness 
+  - You need to include `showlegend = (.y == "AM Peak")` in the `plot_ly()` function 
+    - I don't exactly know what the syntax implies but the label has to be the first factor that  `group_map()` filters the data with  - int his case it is _AM Peak_ 
+  - Properly setting the `layout -> yaxis -> title` correctly 
+    - I do not understand this code myself but I know it is required 
+    - The `.y` is linked to the `showlegend = (.y == "AM Peak")` code above 
+    - If you follow this template it will always work 
+
 
 ## Extending the Magic: Advanced Plotly
-### Part 1: Time Series Filtering and More
-- Share tips on extending Plotly's functionality using built-in features.
-- Explore time series filtering using Plotly's interactive elements.
-- Discuss the power of Plotly buttons for dynamic control.
+
+In this section, we'll delve deep into Plotly to unlock its full potential.  
+
+Advanced Plotly can be approached in two main ways: utilizing Plotly's functions and JavaScript for custom features like buttons and filtering, or combining Plotly with CrossTalk to enhance filtering capabilities. 
+
+These two methods are quite similar yet unique, each with its own strengths and drawbacks. We'll explore these aspects as we move forward. 
+
+### Part 1: Plotly Based Features
+
+In this part, we'll explore features integrated into the `plot_ly()` and `plotly::layout()` functions themselves These features are similar to the faceted section we discussed earlier but can make your code appear more complex compared to the CrossTalk function, which we'll cover below. 
+
+To preface: one significant advantage of this approach is that you don't need to modify the dataframe sent to the `plot_ly()` function. Since we're making all our modifications within the `plot_ly()` and `plotly::layout()` functions, there's no need to alter the data frame containing the data we intend to plot.
+
+### Simple Time Series Buttons
+
+
   
 ### Part 2: Combining Plotly with Other Wizards
 - Talk about combining Plotly with other R packages.

@@ -1,19 +1,36 @@
 ---
 title: "About"
-date: '2016-05-05T21:48:51-07:00'
+date: '2023-10-13'
 ---
 
-Hello! I'm a data scientist at WSP, specializing in analyzing and visualizing large datasets, creating analysis pipelines, applying statistics to discover insights, and producing informative data products to communicate findings. As a member of the Data Informatics Group, I work on data-focused projects that require modern data science tools to solve, helping clients make sense of their existing data or gather new data for them amd extract meaningful and actionable insights.
+Hello! I'm Mike and I'm passionate data scientist with a deep love for the R programming language. My work primarily revolves around the transportation field, where I specialize in analyzing extensive datasets, handling modeling tasks, and leveraging GIS technology. My journey into mapping began in my early years, and I'm delighted to be applying my expertise professionally.
 
-I am constantly curious about the world around me and strive to continuously ask questions, further my knowledge, and improve my data science skills. Ethical data governance is extremely important to me, and I believe in the principles of stewardship, transparency, integrity, and accountability.
+I really enjoy contributing to projects that require innovative data science solutions. I excel in constructing robust analysis pipelines, unearthing valuable insights through advanced statistics, and delivering data-driven solutions to our clients.
 
-My educational background includes a master's degree in Transportation Technology and Policy from the Institute for Transportation Studies at the University of California, Davis. During my time there, I studied transportation policy and focused on new mobility solutions as well as applied statistics, including machine learning and data analysis. Prior to pursuing my master's, I worked as a mechanical engineer at Virgin Hyperloop One (VH1).
+My academic journey includes achieving a master's degree in Transportation Technology and Policy from the Institute for Transportation Studies at the University of California, Davis. During my academic pursuits, I explored transportation policy, delving into emerging mobility solutions and mastering advanced statistical techniques, such as machine learning and data analysis. Before embarking on my data science journey, I worked as a mechanical engineer at Virgin Hyperloop One (VH1).
+
+My areas of professional interest encompass:
+
++ Transportation
++ Modeling Tasks
++ GIS and Mapping
++ Advanced Statistics, including Bayesian Methods (uncertainty!)
++ Data Visualization
+
+The purpose of this blog is to showcase some of the work I've accomplished using R and to assist others in learning R and tackling data science tasks.
 
 
-Some of my interests: 
-Transportation 
-New Mobility Solutions 
-Applied Statistics
-Bayesian Statistics (YAY uncertainty!) 
-Mapping/Maps/GIS
-Client-Side Visualizations
+
+
+
+
+
+
+
+
+
+
+
+
+
+

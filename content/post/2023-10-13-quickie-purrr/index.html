@@ -1,0 +1,203 @@
+---
+title: "5 Minute Tutorials: Tricks with Purrr::map() #1"
+author: 'Mike Gaunt'
+date: '2023-10-13'
+slug: quickie-purrr
+categories: ["R", "Programming"]
+tags: ["purrr", "vectorization", '5Min Tutorials']
+description: "Use map to use functions on dataframes that you otherwise couldn't!"
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+
+
+<div id="quick-overview" class="section level1">
+<h1>Quick Overview</h1>
+<p>Hi hi!<br />
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.</p>
+<div id="what-are-we-looking-at-today" class="section level2">
+<h2>What are we looking at today</h2>
+<p>I wanted to share how to use <code>purrr::map()</code> to apply function that produces more that one output (columns) to a dataframe.</p>
+</div>
+<div id="how" class="section level2">
+<h2>How</h2>
+<p>We ware going to make basic script that lists all files in a directory and its sub-directories that have a specific extension.<br />
+This was something that I needed to do at work and could not, for the life of me, find a file that I was looking for…</p>
+</div>
+<div id="what-you-need" class="section level2">
+<h2>What you need</h2>
+<p>Libraries:</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+</div>
+<div id="base-data" class="section level2">
+<h2>Base Data</h2>
+<p>The code below makes the datafame that we will use for this tutorial</p>
+<pre class="r"><code>full_string_to_root = &quot;&lt;&lt;put a full path to a directory that has a lot of R scripts in it&gt;&gt;&quot;
+
+#get all files in the root
+files = list.files(
+  full_string_to_root, recursive = TRUE
+           ,include.dirs  = T, all.files = T)
+
+#filter files for the root 
+#split file paths to separate the file path and name in different columns 
+#NOTE: this is wayyyyy more efficient with REGREX but I couldn&#39;t make it work
+temp_data = data.frame(paths = c(files[str_detect(files, &quot;\\.R$&quot;)]
+                     ,files[str_detect(files, &quot;\\.r$&quot;)])) %&gt;% 
+  separate(col = &quot;paths&quot;, sep = &quot;/&quot;, into = paste0(&quot;temp_&quot;, 1:6), remove  = F) %&gt;% 
+  pivot_longer(cols = starts_with(&quot;temp&quot;)
+               ,values_to = &quot;file_name&quot;) %&gt;% 
+  filter(!is.na(file_name)) %&gt;% 
+  mutate(name = parse_number(name)) %&gt;% 
+  group_by(paths) %&gt;% 
+  filter(name == max(name)) %&gt;% 
+  ungroup() %&gt;% 
+  mutate(paths = str_remove(paths, paste0(&quot;/&quot;, file_name))) %&gt;% 
+  select(paths, file_name)</code></pre>
+</div>
+</div>
+<div id="the-actual-tutorial" class="section level1">
+<h1>The actual tutorial</h1>
+<p>So this is what my dataframe of files looks like…</p>
+<p>I hashed my files - randomly coded them - since they are sensitive:</p>
+<p>Yours should be something to the effect of <code>code folder</code> <code>script.R</code>. And it doesn’t matter how deep your folder tree goes.</p>
+<pre class="r"><code>print(temp_data_public)</code></pre>
+<pre><code>## # A tibble: 34 x 2
+##    paths    file_name
+##    &lt;chr&gt;    &lt;chr&gt;    
+##  1 77153098 0de5fce9 
+##  2 77153098 725b41a5 
+##  3 77153098 bf6c1f1f 
+##  4 01e4bef1 48d12269 
+##  5 7580e145 e308db7c 
+##  6 25e8962b c5387cc9 
+##  7 25e8962b 5e135a29 
+##  8 25e8962b 35ed1bd3 
+##  9 25e8962b eee54f9a 
+## 10 25e8962b ae7dbbcc 
+## # i 24 more rows</code></pre>
+<p>So this is cool, we listed all the files below our root director but the names alone don’t tell us much.</p>
+<p>To make it more useful, we will add columns indicating when it was made and last modified.</p>
+<p>I’m going to do this by supplying the <code>file.info()</code> with a full path of each script in our DF via the <code>here::here()</code> function.</p>
+<p>It’s easy for just one file at a time:</p>
+<pre class="r"><code>here::here(
+  full_string_to_root
+  ,temp_data$paths[1]
+  ,temp_data$file_name[1]) %&gt;% 
+  file.info() </code></pre>
+<pre><code>##                            size isdir mode               mtime
+## example_file_path_for_file 8621 FALSE  666 2023-08-10 10:47:50
+##                                          ctime               atime exe
+## example_file_path_for_file 2023-06-02 16:13:18 2023-10-13 15:07:43  no</code></pre>
+<p>And now we apply this to each record of our DF.</p>
+<pre class="r"><code>example_df = temp_data %&gt;% 
+  mutate(file_info = here::here(
+    full_string_to_root
+    ,temp_data$paths
+    ,temp_data$file_name) %&gt;% 
+      file.info())</code></pre>
+<p>Take a look at what we just made:</p>
+<pre><code>## # A tibble: 34 x 3
+##    paths    file_name file_info$size $isdir $mode     $mtime             
+##    &lt;chr&gt;    &lt;chr&gt;              &lt;dbl&gt; &lt;lgl&gt;  &lt;octmode&gt; &lt;dttm&gt;             
+##  1 77153098 0de5fce9            8621 FALSE  666       2023-08-10 10:47:50
+##  2 77153098 725b41a5           27857 FALSE  666       2023-06-02 16:12:40
+##  3 77153098 bf6c1f1f           12975 FALSE  666       2023-10-13 10:22:41
+##  4 01e4bef1 48d12269           11259 FALSE  666       2023-10-11 15:48:19
+##  5 7580e145 e308db7c            9891 FALSE  666       2023-03-16 10:23:23
+##  6 25e8962b c5387cc9           11155 FALSE  666       2023-04-25 15:22:27
+##  7 25e8962b 5e135a29            4881 FALSE  666       2023-04-14 11:24:22
+##  8 25e8962b 35ed1bd3            1011 FALSE  666       2023-02-14 14:17:28
+##  9 25e8962b eee54f9a            1163 FALSE  666       2023-02-27 13:23:26
+## 10 25e8962b ae7dbbcc            3519 FALSE  666       2023-02-27 13:23:04
+## # i 24 more rows
+## # i 3 more variables: file_info$ctime &lt;dttm&gt;, $atime &lt;dttm&gt;, $exe &lt;chr&gt;</code></pre>
+<p>Oops! It looks a little strange, the columns created by the <code>file.info()</code> function all have <code>$s</code> in front of them.</p>
+<pre class="r"><code>colnames(example_df)</code></pre>
+<pre><code>## [1] &quot;paths&quot;     &quot;file_name&quot; &quot;file_info&quot;</code></pre>
+<pre class="r"><code>colnames(example_df$file_info)</code></pre>
+<pre><code>## [1] &quot;size&quot;  &quot;isdir&quot; &quot;mode&quot;  &quot;mtime&quot; &quot;ctime&quot; &quot;atime&quot; &quot;exe&quot;</code></pre>
+<p>Seems that we made a <code>file_info</code> column that has columns of its own… hmmmmmm.</p>
+<p>This is a common problem you can run into this when the function you apply to your DF produces multiple output columns.</p>
+</div>
+<div id="the-fix" class="section level1">
+<h1>The Fix</h1>
+<p>The fix is rather simple, we will use <code>purrr::map()</code> to effectively make a nested column (much like the DF above) and unnest it to create a <em>normal</em> looking DF.</p>
+<p>In essence, all you do is:</p>
+<ul>
+<li>add a <code>map()</code> function in the <code>mutate()</code> function</li>
+<li>supply the function with a column to run throught he function
+<ul>
+<li>Note in our case we are sending TWO columns and a string variable but they are collapsed together via the <code>here::here()</code> - which is created as one by the <code>map()</code></li>
+</ul></li>
+<li>define the function to augment the supplied column with</li>
+</ul>
+<pre class="r"><code>example_df_pro = temp_data %&gt;% 
+  #start of the mutuate()
+  mutate(info = map(   #applying the map()
+    here::here(
+      full_string_to_root
+      ,paths
+      ,file_name)    #end of the first input, defining what we will map thru
+    ,file.info     #defining the function to apply - note: we do not include `()`
+  )
+  )</code></pre>
+<p>And it looks like this:</p>
+<pre class="r"><code>example_df_pro</code></pre>
+<pre><code>## # A tibble: 34 x 3
+##    paths    file_name info        
+##    &lt;chr&gt;    &lt;chr&gt;     &lt;list&gt;      
+##  1 77153098 0de5fce9  &lt;df [1 x 7]&gt;
+##  2 77153098 725b41a5  &lt;df [1 x 7]&gt;
+##  3 77153098 bf6c1f1f  &lt;df [1 x 7]&gt;
+##  4 01e4bef1 48d12269  &lt;df [1 x 7]&gt;
+##  5 7580e145 e308db7c  &lt;df [1 x 7]&gt;
+##  6 25e8962b c5387cc9  &lt;df [1 x 7]&gt;
+##  7 25e8962b 5e135a29  &lt;df [1 x 7]&gt;
+##  8 25e8962b 35ed1bd3  &lt;df [1 x 7]&gt;
+##  9 25e8962b eee54f9a  &lt;df [1 x 7]&gt;
+## 10 25e8962b ae7dbbcc  &lt;df [1 x 7]&gt;
+## # i 24 more rows</code></pre>
+<p>Similar to the first DF that we made but we no can see the size of the DF that is in each info record.</p>
+<p>We can expand this by running it through <code>unnest()</code></p>
+<pre class="r"><code>example_df_pro_unnested = example_df_pro %&gt;%  
+  unnest(cols = info)</code></pre>
+<pre><code>## # A tibble: 34 x 9
+##    paths    file_name  size isdir mode   mtime               ctime              
+##    &lt;chr&gt;    &lt;chr&gt;     &lt;dbl&gt; &lt;lgl&gt; &lt;octm&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 77153098 0de5fce9   8621 FALSE 666    2023-08-10 10:47:50 2023-06-02 16:13:18
+##  2 77153098 725b41a5  27857 FALSE 666    2023-06-02 16:12:40 2023-06-01 08:07:54
+##  3 77153098 bf6c1f1f  12975 FALSE 666    2023-10-13 10:22:41 2023-10-13 10:22:40
+##  4 01e4bef1 48d12269  11259 FALSE 666    2023-10-11 15:48:19 2023-05-31 09:36:56
+##  5 7580e145 e308db7c   9891 FALSE 666    2023-03-16 10:23:23 2023-02-22 10:03:33
+##  6 25e8962b c5387cc9  11155 FALSE 666    2023-04-25 15:22:27 2023-04-25 15:19:46
+##  7 25e8962b 5e135a29   4881 FALSE 666    2023-04-14 11:24:22 2023-04-07 14:21:43
+##  8 25e8962b 35ed1bd3   1011 FALSE 666    2023-02-14 14:17:28 2023-02-14 14:17:28
+##  9 25e8962b eee54f9a   1163 FALSE 666    2023-02-27 13:23:26 2023-02-27 13:23:26
+## 10 25e8962b ae7dbbcc   3519 FALSE 666    2023-02-27 13:23:04 2023-02-27 13:23:04
+## # i 24 more rows
+## # i 2 more variables: atime &lt;dttm&gt;, exe &lt;chr&gt;</code></pre>
+<p>And you can see that we fixed the column issue….</p>
+<pre class="r"><code>colnames(example_df_pro_unnested)</code></pre>
+<pre><code>## [1] &quot;paths&quot;     &quot;file_name&quot; &quot;size&quot;      &quot;isdir&quot;     &quot;mode&quot;      &quot;mtime&quot;    
+## [7] &quot;ctime&quot;     &quot;atime&quot;     &quot;exe&quot;</code></pre>
+</div>
+<div id="parting-words" class="section level1">
+<h1>Parting words</h1>
+<p>So why do this?!??!?</p>
+<p>For a few reasons:</p>
+<ul>
+<li>to be able to deploy functions that have multiple outputs to a dataframe without creating a weird DF structure</li>
+<li>nesting DFs are a really great way to keep many augmentations to a DF in the same location
+<ul>
+<li>a lot of novices will do something to a DF and save it as a separate object</li>
+<li>this can confuse code, make it difficult to track objects for analysis</li>
+<li>this one object can be then saved as an RDS object! cool!</li>
+</ul></li>
+</ul>
+<p>Good luck and thanks for checking this out!</p>
+</div>
