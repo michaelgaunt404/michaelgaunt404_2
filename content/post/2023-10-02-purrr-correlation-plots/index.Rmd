@@ -313,14 +313,13 @@ When working with data in R, consider using purrr and nested data frames with li
 + `Community and Documentation:` Strong support and extensive documentation.
 + `Fucntion-izable Code`: More concise, robust code can be _functionalized_ and reused
 
+# Additional Examples
 
-# Additional Offerings
-
-This section is intended to get you interested in using purrr but no go into detail...
+This section is intended to get you interested in using purrr but without going into great detail...
 
 ## Custom Metic Summarization Function
 
-Apply `DescTools::Quantile()` function many times (given user specified qunatils) to segment travel time metric and create many attributes.
+Apply `DescTools::Quantile()` function many times (given user specified quantiles) to segment travel time metric and create many attributes.
 ```{r}
 quantiles = seq(0, 1, .25)
 
@@ -338,7 +337,7 @@ data_qunatiles = data %>%
 glimpse(data_qunatiles)
 ```
 
-For bonus points, functionalize it! 
+For bonus points, function-alize it! 
 ```{r eval=FALSE}
 
 make_stats = function (data, grp_c = c("segement_name", "flag_peak", "direction_id"),
@@ -356,9 +355,53 @@ make_stats(data, grp_c = "direction_id", quantiles = c(.5, .95)) %>%
   glimpse()
 ```
 
+## Load All Directory Files 
+
+Loading multiple files from a directory can be a real hassle, but with map, you can simply point to a directory.
+
+R will handle the task of listing all the files in that directory - mapping through his list will load each one by one and you'll end up with a single list object, where each element contains the contents of a file. It's that easy
+
+```{r eval=FALSE}
+read_xlsx_allFiles <- function(data_location = "./data/", specifically = NULL,
+                               clean = F, clean_string = NULL, sheet = sheet, latest = F) {
+  file_list = list.files(data_location) %>%
+    .[str_detect(., "xlsx")] %>%
+    paste0(data_location, .) %>%
+    { if (!is.null(specifically)) (.) %>% .[str_detect(., specifically)] else .} %>%
+    { if (latest) .[parse_number(.) == max(parse_number(.))] else .}
+
+  if (clean){
+  data_list =
+    file_list %>%
+    map(~readxl::read_xlsx(.x, sheet = sheet) %>%
+          na_if("NULL") %>%
+          janitor::remove_empty("cols") %>%
+          janitor::clean_names()
+    )
+  } else {
+    data_list =
+      file_list %>%
+      map(~readxl::read_xlsx(.x, sheet = sheet)
+      )
+  }
+
+  if (!is.null(clean_string)) {
+    names(data_list) = file_list %>%
+      map(~str_remove(.x, data_location) %>%
+            str_remove(".csv") %>%
+            gsub(str_glue("{clean_string}.*"), "\\1", .))
+  } else {
+    names(data_list) = paste0(file_list, sheet)
+  }
+
+  data_list
+}
+```
+
+
 ## Scrape Mulitple URLs
 
-Take two lists of items, supply them to pmap (multiple-map) and scape data tables on site.
+Take two lists of items, supply them to pmap (multiple-map) and scrape data tables on site.
 
 Notice that I can make intermediate data objects during the p-mapping operation, that won't be saved to disk at the end.
 
@@ -409,13 +452,137 @@ processed = list(
     return(element_text)
     # return(list(element_text, webpage)) #if you want to return multiple subobjects
 
-    
   })
 ```
 
+## Performing/Saving Workflows
 
+Complex workflows can be streamlined into a single map/nest/purrr process. 
 
+The following script carries out four distinct operations on spatial data, each generating a unique nested column.
 
++ TS Subset: This step temporally pre-filters each precinct within a defined time window.
++ TF_SF: Performs spatial processing of the data and additional data manipulation.
++ LM Mod Summary: Generates individual models for each record.
++ LM Mod Coefficient and Mod NA Check: Extracts model performance coefficients from each model and ensures the successful execution of each model.
+
+```{r eval=FALSE}
+model_summons = function(
+    corridor_obj, summons
+    ,lookback = 12, extra_rad = 0){
+  # corridor_obj = enf_corridor_list_objct
+  # summons = summons_data
+  # lookback = 12
+  # extra_rad = 0 
+  
+  corridor_obj %>%  
+    .[c(1), ] %>%
+    mutate(
+      summons_ts_subset = pmap( 
+        list(dt_start, dt_stop, data_yr)
+        ,function(x, y, z){
+          tryCatch({
+            summons %>%
+              .[VIOLATION_DATE > (x - months(lookback)) &
+                  VIOLATION_DATE < (y + months(lookback)), ] 
+          }, error = function(err) {
+            print("Error in summons prefilter..")
+            print(err$message)
+            return(NA)
+          })
+        })
+    ) %>% 
+    mutate(
+      summons_ts_sf = pmap(
+        list(summons_ts_subset, links_buff, dt_start, dt_stop)
+        ,function(x, y, z, m){
+          tryCatch({
+            x %>%
+              st_as_sf(coords = c("Longitude", "Latitude")
+                       ,crs = 4326) %>%
+              st_filter(y %>% 
+                          gauntlet::quick_buffer(radius = extra_rad)) %>% 
+              st_drop_geometry() %>% 
+              mutate(period = case_when(
+                (VIOLATION_DATE) < as_date(as_date(z) - months(1)) ~ "BeforeAction"
+                ,(VIOLATION_DATE) > as_date(as_date(m) + months(1)) ~ "AfterAction"
+                ,T~"Middle") %>%
+                  fct_relevel("BeforeAction", "AfterAction", "Middle")
+              ) %>% 
+              group_by(VIOLATION_DATE, period) %>%
+              summarise(count = sum(count)) %>%
+              ungroup() 
+            
+          }, error = function(err) {
+            print("Error occurred:") 
+            print(err$message)
+            return(NA)
+          })
+        })
+    ) %>% 
+    mutate(
+      lm_mod_smmry = map(
+        summons_ts_sf
+        ,~{
+          tryCatch({
+            lm(count~period, data = .x) %>%
+              summary() 
+          }, error = function(err) {
+            print(paste("Error occurred:", err$message))
+            return(NA)
+          })
+        })
+    ) %>% 
+    mutate(
+      lm_mod_coef = map(
+        lm_mod_smmry
+        ,~{
+          tryCatch({
+            .x %>%
+              coef() %>%
+              data.frame() %>% 
+              mutate(metric = rownames(.))
+          }, error = function(err) {
+            print(paste("Error occurred:", err$message))
+            return(NA)
+          })
+        })
+      ,mod_na_check = map(
+        lm_mod_coef, ~(.x %>% nrow)
+      )
+    )  
+}
+```
+
+See the below image – it is the object created by this function. You can save it as an RDS object, so there's no need to rerun your entire analysis. This nifty trick simplifies data storage and retrieval, making life easier.
+
+![](nested_models.png)
+
+## Making Maps with Many Layers 
+
+Creating maps with numerous unique layers can be a bit of a headache if you're constructing each layer manually.  
+
+The good news is, there's an easier way – map over each variable layer to craft a unique map, and then blend all those layers into a single, grand map. 
+
+```{r eval = FALSE}
+
+data_od_sf %>%
+  mutate(layer_id = str_glue("{vehicle_type} - {type}")  %>%
+  group_by(layer_id_1 = layer_id) %>%
+  group_map(~{
+    tmp_layer_name = unique(.x$layer_id)
+
+    mapview(.x
+            ,cex = "count"
+            ,zcol = "count"
+            ,layer.name = str_glue("{tmp_layer_name} - Freight Count")
+            # ,col.region = pal(.x$count))
+    )
+  }) %>%
+      reduce(`+`)
+```
+
+![](map.png)
 
 
 
