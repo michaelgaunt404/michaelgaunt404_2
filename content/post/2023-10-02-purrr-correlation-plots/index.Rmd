@@ -28,7 +28,7 @@ knitr::opts_chunk$set(cache = F, warning = FALSE, message = FALSE
                       tidy = "styler", fig.width = 4, fig.height = 3)
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r echo=FALSE, message=FALSE, eval=FALSE}
 data = readRDS(
   here::here(
     "content/post"
@@ -61,6 +61,13 @@ The data we will use in this tutorial is a data frame that records the travel ti
 + `time_diff_pct`: A calculated attribute indicating what percentage of an individual travel time segment is in proportion to a bus's total route travel time - also what we are investigating.
 
 Take a look:
+```{r}
+data_file = "https://raw.githubusercontent.com/michaelgaunt404/michaelgaunt404_2/master/content/post/2023-10-02-purrr-correlation-plots/data_travel_times.csv" 
+
+data = read.csv(data_file)
+```
+
+
 ```{r echo=FALSE}
 print(head(data))
 ```
@@ -70,8 +77,6 @@ Since we are only concerned with travel time given the time-of-day and direction
 # Tutorial Packages 
 The chunk below shows which packages will be using for this tutorial. 
 
-I suggest doing the 
-
 ```{r echo=T, message=FALSE}
 require(tidyverse) #entire tidyverse package suite - including purrr, dplyr, ggplot, etc
 require(magrittr) #for code piping
@@ -80,7 +85,7 @@ require(lubridate) #for working with dates and datetimes
 
 # Tutorial 
 
-To address our problem statement, we have chosen to investigate how each segment's travel time correlates with one another, along with the total route travel time. 
+In this tutorial we will investigate `how each segment's travel time correlates with one another`, along with the total route travel time. 
 
 In essence, we aim to create a correlation matrix using the `stats::cor()` function, considering the time of day and direction of travel as factors in our analysis. And to top it all off, we want to interact with these correlation matrices via a visualization. 
 
@@ -88,7 +93,6 @@ So first we apply some initial data processing to have our base working data.
 
 ```{r}
 data_processed = data %>%
-  # filter(segement_name != "Hewitt_100th") %>%
   filter(wday(date_time) %in% c(3, 4, 5)) %>% #grab only T, W, and TR
   pivot_wider(id_cols = c('trip_id', 'direction_id', 'route_id', 'vehicle_id', 'flag_peak')
               ,names_from = 'segement_name'
@@ -158,10 +162,10 @@ Firstly, to create four plots, we end up with eight different data objects to ma
 
 These problems become more pronounced when dealing with large datasets, numerous factor combinations, or comparing data objects created with different function inputs.
 
-A comment on for-loops:
-
-For loops may be the first solution to come to your mind, and they're not a bad option. However, when coding in R, they introduce additional issues, including the following advantages of vectorization:"
-
+> A comment on for-loops:
+> 
+> For loops may be the first solution to come to your mind, and they're not a bad option. However, when coding in R, they introduce additional issues, including the following advantages of vectorization:"
+> 
 + Clarity & Readability: Vectorization offers concise and readable code.
 + Performance: Vectorized operations are often faster, especially for large datasets.
 + Tidyverse Integration: Seamless integration with Tidyverse tools.
@@ -170,9 +174,8 @@ For loops may be the first solution to come to your mind, and they're not a bad 
 + Ease of Debugging: Simplified debugging process.
 + Functional Programming: Aligns with R's functional programming paradigm.
 + Efficient Memory Usage: Minimizes unnecessary object creation.
-+ Consistency: Ensures uniform behavior across data types.
-
-
++ Consistency: Ensures uniform behavior across data types.  
+   
 ## The Optimal Solution
 
 How can we improve this by using R specific solutions? We aim for robust, clean, easily interpretable, and concise code. To achieve this, we'll utilize the `nest()` and `map()` functions from the `purrr` package.
@@ -197,7 +200,6 @@ print(data_processed_nest)
 ```
 
 You can actually see that there are a few more records in bout the PM peak subsets than in the AM.
-
 
 ### Step 2
 ---
@@ -268,7 +270,6 @@ data_processed_nest = data_processed %>%
   ungroup()
 ```
 
-
 And we can now use that object for our analysis.
 ```{r}
 plot = data_processed_nest %>% 
@@ -318,6 +319,28 @@ When working with data in R, consider using purrr and nested data frames with li
 This section is intended to get you interested in using purrr but without going into great detail...
 
 ## Custom Metic Summarization Function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Apply `DescTools::Quantile()` function many times (given user specified quantiles) to segment travel time metric and create many attributes.
 ```{r}
