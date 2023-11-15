@@ -1,11 +1,11 @@
 ---
-title: Kara Heart Elon
+title: Kara `r emo::ji("heart")` Elon
 author: 'Mike Gaunt'
 date: '2023-11-14'
 slug: kara-heart-elon
 categories: ["R", "Text Analysis"]
 tags: ["fun", "strings", '5Min Tutorials', 'web scraping']
-description: "Kara loves Elon, lets see how much that love."
+description: "Lets see how deep that love runs."
 image: ~
 math: ~
 license: ~
@@ -25,8 +25,9 @@ knitr::opts_chunk$set(cache = F, warning = FALSE, message = FALSE
 data_pro = readRDS(
   here::here("content/post/2023-11-14-kara-heart-elon", "kara_heart_elon_pro.rds")
 )
+
+
 ```
- 
 
 # Intro
 
@@ -54,7 +55,7 @@ library(crosstalk)
 
 Monthly frequency of tech personalities direct mentions in Pivot podcast descriptions.
 
-```{r}
+```{r echo=FALSE}
 person_counts = c("Elon", "Bezos", "Zuckerberg") %>% 
   map_df(~{
     data_pro %>% 
@@ -63,7 +64,7 @@ person_counts = c("Elon", "Bezos", "Zuckerberg") %>%
   })
 ```
 
-```{r}
+```{r echo=FALSE}
 temp_data = person_counts %>% 
   mutate(floor_month = lubridate::floor_date(date, "month")
          ,count = 1) %>% 
@@ -100,10 +101,9 @@ bscols(
        ))
 ```
 
-Specifically Elon and Elon affliated stuff. 
+Specifically Elon and Elon affiliated stuff.  `r emo::ji("rocket")` `r emo::ji("rocket")` `r emo::ji("rocket")`
 
-```{r}
-
+```{r echo=FALSE}
 person_counts = c("Elon", "Twitter", "Elon|Twitter", "SpaceX", "Tesla") %>% 
   map_df(~{
     data_pro %>% 
@@ -112,7 +112,7 @@ person_counts = c("Elon", "Twitter", "Elon|Twitter", "SpaceX", "Tesla") %>%
   })
 ```
 
-```{r}
+```{r echo=FALSE}
 temp_data = person_counts %>% 
   mutate(floor_month = lubridate::floor_date(date, "month")
          # ,count = as.numeric(flag_detect)
