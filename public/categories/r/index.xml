@@ -6,7 +6,19 @@
     <description>Recent content in R on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 02 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5 Minute Tutorials: Tricks with Purrr::map() #1</title>
+      <link>https://mikegaunt404.netlify.app/2023/10/13/quickie-purrr/</link>
+      <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/10/13/quickie-purrr/</guid>
+      <description>Quick OverviewHi hi!
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.
+What are we looking at todayI wanted to share how to use purrr::map() to apply function that produces more that one output (columns) to a dataframe.
+HowWe ware going to make basic script that lists all files in a directory and its sub-directories that have a specific extension.</description>
+    </item>
+    
     <item>
       <title>Clean that Code up with purrr</title>
       <link>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</link>
@@ -16,26 +28,6 @@
       <description>This blog serves as a brief tutorial on how to utilize the purrr package by our studio to streamline and simplify complex or repetitive sections of code.
 BackgroundOne major advantage of working with us is the ability to leverage the power of the Tidyverse R package environment. This package environment, developed by RStudio, is designed to enhance the usability of R.
 An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R.</description>
-    </item>
-    
-    <item>
-      <title>Client-Side Interactivite Visulations</title>
-      <link>https://mikegaunt404.netlify.app/2021/09/11/client-side-plot-interactivity/</link>
-      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/2021/09/11/client-side-plot-interactivity/</guid>
-      <description>I love creating visualizations in R 💹, its one of the first things that I do when exploring a new data set. One of the problems that I usually run into during an analysis is that I end up with a huge amount of plots…… mid-analysis I get slowed down having to sift through throngs of plots that I’ve created. This is usually brought on for a number of reasons:</description>
-    </item>
-    
-    <item>
-      <title>Hello R Markdown</title>
-      <link>https://mikegaunt404.netlify.app/2020/12/01/hello-r-markdown/</link>
-      <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/2020/12/01/hello-r-markdown/</guid>
-      <description>R MarkdownThis is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
     </item>
     
   </channel>

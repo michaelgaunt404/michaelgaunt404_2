@@ -6,11 +6,11 @@
     <description>Recent content in Categories on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 02 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 13 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Programming</title>
       <link>https://mikegaunt404.netlify.app/categories/programming/</link>
-      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
       
       <guid>https://mikegaunt404.netlify.app/categories/programming/</guid>
       <description></description>
@@ -19,18 +19,9 @@
     <item>
       <title>R</title>
       <link>https://mikegaunt404.netlify.app/categories/r/</link>
-      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
       
       <guid>https://mikegaunt404.netlify.app/categories/r/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Visualizations</title>
-      <link>https://mikegaunt404.netlify.app/categories/visualizations/</link>
-      <pubDate>Sat, 11 Sep 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/categories/visualizations/</guid>
       <description></description>
     </item>
     

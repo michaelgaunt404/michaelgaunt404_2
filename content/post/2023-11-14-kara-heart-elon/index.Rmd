@@ -1,0 +1,159 @@
+---
+title: Kara Heart Elon
+author: 'Mike Gaunt'
+date: '2023-11-14'
+slug: kara-heart-elon
+categories: ["R", "Text Analysis"]
+tags: ["fun", "strings", '5Min Tutorials', 'web scraping']
+description: "Kara loves Elon, lets see how much that love."
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = F, warning = FALSE, message = FALSE
+                      ,dpi = 300, cache.lazy = FALSE,
+                      tidy = "styler", fig.width = 4, fig.height = 3)
+```
+
+```{r echo=FALSE, message=FALSE, eval=T}
+#run this if you download the rds object and have it saved locally
+data_pro = readRDS(
+  here::here("content/post/2023-11-14-kara-heart-elon", "kara_heart_elon_pro.rds")
+)
+```
+ 
+
+# Intro
+
+Kara loves to talk about Elon Musk. 
+
+A couple of friends asked me how often I thought Kara directly mentions/talks about Elon Musk 
+
+This is my attempt to quantify that.
+
+# Method
+
+The data used for this was copied directly from the Apple Podcast App website. 
+
+I only use show note descriptions so any reference to Elon in a podcast but not in the show notes will not be counted.
+
+```{r echo=F, message=FALSE}
+require(tidyverse) #entire tidyverse package suite - including purrr, dplyr, ggplot, etc
+require(magrittr) #for code piping
+require(lubridate) #for working with dates and datetimes
+library(plotly)
+library(crosstalk)
+```
+
+# Overview 
+
+Monthly frequency of tech personalities direct mentions in Pivot podcast descriptions.
+
+```{r}
+person_counts = c("Elon", "Bezos", "Zuckerberg") %>% 
+  map_df(~{
+    data_pro %>% 
+      mutate(flag_detect = str_detect(desc, .x)) %>% 
+      mutate(variable = .x)
+  })
+```
+
+```{r}
+temp_data = person_counts %>% 
+  mutate(floor_month = lubridate::floor_date(date, "month")
+         ,count = 1) %>% 
+  gauntlet::count_percent_zscore(
+    grp_c = c("floor_month", "variable", "flag_detect")
+    ,grp_p = c("floor_month", "variable")
+    ,col = count
+    ,rnd = 2
+  ) %>% 
+  filter(flag_detect) %>% 
+  complete(floor_month, variable, flag_detect, fill = list(count = 0, percent = 0)) %>% 
+  group_by(variable) %>%
+  mutate(gauntlet::auto_make_rMean_col(col = count, width = 3)) %>% 
+  ungroup()
+
+temp_data_sh = SharedData$new(temp_data)
+
+bscols(
+  widths = c(12)
+       ,filter_select(id = "id_1_zz",label = "Pick an Asshole: ", sharedData = temp_data_sh, multiple = T, group = ~variable)
+       ,subplot(
+         temp_data_sh %>% 
+           plot_ly(x = ~floor_month, y = ~count, color = ~variable, legendgroup = ~variable
+                   ,type="scatter", mode="lines+markers", showlegend = T) %>% 
+           # add_trace(x = ~floor_month, y = ~count_rMean_3, color = ~variable, legendgroup = ~variable
+                   # ,type="scatter", mode="lines", showlegend = T) %>%
+           layout(yaxis = list(title = "Count"), xaxis = list(title = "Year"))  
+         ,temp_data_sh %>% 
+           plot_ly(x = ~floor_month, y = ~percent, color = ~variable #change
+                   ,type = "bar", legendgroup = ~flag_detect , showlegend = F) %>% 
+           
+           layout(yaxis = list(title = "Percent"), xaxis = list(title = "Year")), nrows = 2
+         ,shareX = T, shareY = T, heights = c(.6,  .4)
+       ))
+```
+
+Specifically Elon and Elon affliated stuff. 
+
+```{r}
+
+person_counts = c("Elon", "Twitter", "Elon|Twitter", "SpaceX", "Tesla") %>% 
+  map_df(~{
+    data_pro %>% 
+      mutate(flag_detect = str_detect(desc, .x)) %>% 
+      mutate(variable = .x)
+  })
+```
+
+```{r}
+temp_data = person_counts %>% 
+  mutate(floor_month = lubridate::floor_date(date, "month")
+         # ,count = as.numeric(flag_detect)
+         ,count = 1) %>% 
+  gauntlet::count_percent_zscore(
+    grp_c = c("floor_month", "variable", "flag_detect")
+    ,grp_p = c("floor_month", "variable")
+    ,col = count
+  ) %>% 
+  filter(flag_detect)
+
+temp_data_sh = SharedData$new(temp_data)
+
+
+bscols(
+  widths = c(12)
+       ,filter_select(id = "id_1_zz",label = "Pick a Variable: ", sharedData = temp_data_sh, multiple = T, group = ~variable)
+       ,subplot(
+         temp_data_sh %>% 
+           plot_ly(x = ~floor_month, y = ~count, color = ~variable, legendgroup = ~variable
+                   ,type="scatter", mode="lines+markers", showlegend = T) %>% 
+           # add_trace(x = ~floor_month, y = ~count_rMean_3, color = ~variable, legendgroup = ~variable
+                   # ,type="scatter", mode="lines", showlegend = T) %>%
+           layout(yaxis = list(title = "Count"), xaxis = list(title = "Year"))  
+         ,temp_data_sh %>% 
+           plot_ly(x = ~floor_month, y = ~percent, color = ~variable #change
+                   ,type = "bar", legendgroup = ~flag_detect , showlegend = F) %>% 
+           
+           layout(yaxis = list(title = "Percent"), xaxis = list(title = "Year")), nrows = 2
+         ,shareX = T, shareY = T, heights = c(.6,  .4)
+       ))
+```
+
+
+
+
+
+
+
+
+
+
+
+
