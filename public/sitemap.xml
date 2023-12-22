@@ -2,37 +2,61 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/5min-tutorials/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/data/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/data-storage/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/post/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/r/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/vectorization/</loc>
+    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/fun/</loc>
+    <lastmod>2023-11-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/2023/11/14/kara-heart-elon/</loc>
+    <lastmod>2023-11-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/strings/</loc>
+    <lastmod>2023-11-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/categories/text-analysis/</loc>
+    <lastmod>2023-11-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://mikegaunt404.netlify.app/tags/web-scraping/</loc>
+    <lastmod>2023-11-14T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://mikegaunt404.netlify.app/2023/10/13/quickie-purrr/</loc>
     <lastmod>2023-10-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mikegaunt404.netlify.app/tags/5min-tutorials/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://mikegaunt404.netlify.app/about/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/categories/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/post/</loc>
     <lastmod>2023-10-13T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://mikegaunt404.netlify.app/categories/programming/</loc>
     <lastmod>2023-10-13T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://mikegaunt404.netlify.app/tags/purrr/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/categories/r/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/tags/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/tags/vectorization/</loc>
     <lastmod>2023-10-13T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</loc>

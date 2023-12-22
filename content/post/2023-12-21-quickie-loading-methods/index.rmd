@@ -1,0 +1,272 @@
+---
+title: "5 Minute Tutorials: Fast Data Loading"
+author: 'Mike Gaunt'
+date: '2023-12-21'
+slug: quickie-purrr
+categories: ["R", "Data"]
+tags: ["data storage", "vectorization", '5Min Tutorials']
+description: "Efficient data storage methods beyond CSVs."
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+# Quick Overview
+
+Hi hi!   
+This is intended to  be a very quick tutorial highlighting bite-sizeable and really helpful R tips. 
+
+## What are we looking at today
+
+I wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of `write.csv()`.
+
+Specifically, using:
+
++ `qs objects`
++ `rds objects`
++ `data.table CSVs`
++ `base R CSVs`
+
+[Link to qs github page](https://github.com/traversc/qs?tab=readme-ov-file#features) - the features table provides a really great way to compare the main methods we will be looking at.
+
+## How
+We are going to make basic script that creates a pretty large data set and we will use different methods to save and reload it and compare the time it takes to perform this action and the resulting file size of the file that is created.    
+
+## What you need 
+
+Libraries:
+```{r message=FALSE, warning=FALSE}
+library(qs)
+library(data.table)
+library(readr)
+library(tictoc)
+library(tidyverse)
+```
+
+Custom functions:
+```{r}
+tictoc_seconds = function(toc_object){
+  seconds = toc_object[2]-toc_object[1]
+  return(seconds)
+}
+
+save_and_read_data <- function(extension
+                               ,data
+                               ,dir) {
+  tictoc::tic()
+  
+  file <- here::here(dir, paste0("myfile.", extension))
+  
+  if (extension == "qs") {
+    qsave(data, file)
+    df2 <- qread(file)
+  } else if (extension == "rds") {
+    readr::write_rds(data, file)
+    df2 <- readr::read_rds(file)
+  } else if (extension == "rds") {
+    write_rds(data, file)
+    df2 <- read_rds(file)
+  } else if (extension == "dt") {
+    data.table::fwrite(data, file)
+    df2 <- data.table::fread(file)
+  } else if (extension == "arrow") {
+    arrow::write_feather(data, file)
+    df2 <- arrow::read_feather(file)
+  } else if (extension == "parquet") {
+    arrow::write_parquet(data, file)
+    df2 <- arrow::read_parquet(file)
+  } else if (extension == "csv") {
+    write.csv2(data, file)
+    df2 <- read.csv2(file)
+  } else {
+    stop("Unsupported file extension. Please use 'qs' or 'rds'.")
+  }
+  
+  time_elapsed = tictoc::toc(quiet = T)
+  time_elapsed_seconds <- tictoc_seconds(as.numeric(time_elapsed))
+  file_size <- file.size(file)
+  
+  return(
+    data.frame(
+      extension = extension
+      ,time_elapsed = round(time_elapsed_seconds, 2)
+      ,size = file_size)
+    )
+}
+```
+
+
+## Base Data
+
+The code below makes the datafame that we will use for this tutorial. 
+```{r}
+set.seed(123)
+
+length_of_dataframe <- 5e6
+
+data <- data.frame(
+  x = seq(1, length_of_dataframe)
+  ,y = 2 * seq(1, length_of_dataframe) + rnorm(length_of_dataframe, mean = 0, sd = length_of_dataframe*.2)
+  ,z = sample(letters, length_of_dataframe, replace = T)
+) %>% 
+  mutate(model = rep(c("model_1", "model_2", "model_3", "model_4"), length_of_dataframe/4))
+```
+
+## Basic Data Storage
+
+Here we use each method to store the basic dataframe that we made above.
+```{r}
+tempdir = tempdir()
+
+df_bench = c("qs", "rds", "dt", "arrow", "parquet", "csv") %>% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = data
+    ,dir = tempdir)) %>% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))
+```
+
+And here is the comparison of how fast each method performed the action and the size of the resulting saved data file. 
+
+We benchmark all methods and metrics to `qs`.
+```{r echo=F}
+reactable::reactable(df_bench)
+```
+
+Few points of interest: 
+
++ Using `write.csv` is clearly antiquated, save yourself file storage and time and stop using it. 
++ `data.tables` is about as fast as `arrow` but the resulting file is rather large - +4x larger!
+
+## Storing Nested Objects
+
+In this section, we use each method to store more complex nested objects. 
+
+I'm not going to explain what they are here in detail but TLDR; you can jam what you normally be separate R objects into a singular object and then save them. 
+
+They are very useful when making derivative items from a `main` object and then keeping them all together as a unit.
+
+```{r}
+#this object has an attribute that holds model summaries
+model_object = data %>% 
+  group_by(model) %>% 
+  nest() %>% 
+  mutate(mod_lm = map(data, ~lm(y~x, data = .x) %>% summary())) %>% 
+  mutate(mod_aic = map(mod_lm, ~.x$r.squared))
+
+#this object just has nested data with no special objects
+nested_data_only = model_object %>% 
+  select(!c(mod_lm))
+
+print(model_object)
+```
+
+### Nested Data-Only Objects
+
+We can apply any method here besides the basic `write.csv2()` function.
+```{r}
+tempdir = tempdir()
+
+df_bench = c("qs", "rds", "arrow", "parquet") %>% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %>% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))
+```
+
+And to compare each method.
+```{r echo=F}
+reactable::reactable(df_bench)
+```
+
+### Nested Objects with Special Attribute
+
+In this case we perform a common modeling workflow on the data we created above - notice the model object contains: 
+
++ `original data`
++ `lm summary objects`
++ `AIC objects`
+
+We can only apply `qs` and `rds` methods to save model objects.
+```{r}
+tempdir = tempdir()
+
+df_bench = c("qs", "rds") %>% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %>% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))
+```
+
+And to compare each method again.
+```{r echo=F}
+reactable::reactable(df_bench)
+```
+
+WOW! `qs` really takes the cake! I know what I'm using from here on out.
+
+## Spatial Objects
+
+Lastly, we're going to take a look at saving spatial data still in a spatial format. 
+
+Turns out that, like the lm nested dataframe above, arrow and parquet file types can store GIS objects. 
+
+This isn't a big deal as spatial object can be converted to a non-spatial object with the geometry defined via WKT and then saved with `arrow` and `parquet`.... dealers choice!
+
+```{r}
+library(mapview)
+```
+
+```{r}
+breweries_big = breweries %>% 
+  sample_n(size = 500, replace = T)
+```
+
+```{r}
+tempdir = tempdir()
+
+df_bench = c("qs", "rds") %>% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = breweries_big
+    ,dir = tempdir)) %>% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))
+```
+
+And to compare each method again.
+```{r echo=F}
+reactable::reactable(df_bench)
+```
+
+## Wrap Up
+
+Looks like your best bet is going to be `qs` or `arrow` - balancing time with storage space when you make that decision.
+
+If you have more complex objects with different objects nested in attributes or spatial objects you will be required to use `qs`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

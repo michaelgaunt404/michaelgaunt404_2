@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Text Analysis on The Gauntlet: An R Blog</title>
+    <link>https://mikegaunt404.netlify.app/categories/text-analysis/</link>
+    <description>Recent content in Text Analysis on The Gauntlet: An R Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 14 Nov 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/text-analysis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kara ❤️ Elon</title>
+      <link>https://mikegaunt404.netlify.app/2023/11/14/kara-heart-elon/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/11/14/kara-heart-elon/</guid>
+      <description>IntroKara loves to talk about Elon Musk.
+A couple of friends asked me how often I thought Kara directly mentions/talks about Elon Musk
+This is my attempt to quantify that.
+MethodThe data used for this was copied directly from the Apple Podcast App website.
+I only use show note descriptions so any reference to Elon in a podcast but not in the show notes will not be counted.</description>
+    </item>
+    
+  </channel>
+</rss>

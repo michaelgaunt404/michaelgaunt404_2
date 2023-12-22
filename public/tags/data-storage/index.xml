@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>data storage on The Gauntlet: An R Blog</title>
+    <link>https://mikegaunt404.netlify.app/tags/data-storage/</link>
+    <description>Recent content in data storage on The Gauntlet: An R Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/data-storage/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5 Minute Tutorials: Fast Data Loading</title>
+      <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</link>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</guid>
+      <description>Quick OverviewHi hi!
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.
+What are we looking at todayI wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of write.csv().
+Specifically, using:
+qs objectsrds objectsdata.table CSVsbase R CSVsLink to qs github page - the features table provides a really great way to compare the main methods we will be looking at.</description>
+    </item>
+    
+  </channel>
+</rss>

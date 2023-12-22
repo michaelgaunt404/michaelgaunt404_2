@@ -6,13 +6,58 @@
     <description>Recent content in Tags on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>5Min Tutorials</title>
       <link>https://mikegaunt404.netlify.app/tags/5min-tutorials/</link>
-      <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
       
       <guid>https://mikegaunt404.netlify.app/tags/5min-tutorials/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>data storage</title>
+      <link>https://mikegaunt404.netlify.app/tags/data-storage/</link>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/data-storage/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>vectorization</title>
+      <link>https://mikegaunt404.netlify.app/tags/vectorization/</link>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/vectorization/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>fun</title>
+      <link>https://mikegaunt404.netlify.app/tags/fun/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/fun/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>strings</title>
+      <link>https://mikegaunt404.netlify.app/tags/strings/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/strings/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>web scraping</title>
+      <link>https://mikegaunt404.netlify.app/tags/web-scraping/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/web-scraping/</guid>
       <description></description>
     </item>
     
@@ -22,15 +67,6 @@
       <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
       
       <guid>https://mikegaunt404.netlify.app/tags/purrr/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>vectorization</title>
-      <link>https://mikegaunt404.netlify.app/tags/vectorization/</link>
-      <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/tags/vectorization/</guid>
       <description></description>
     </item>
     

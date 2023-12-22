@@ -1,0 +1,234 @@
+---
+title: "5 Minute Tutorials: Fast Data Loading"
+author: 'Mike Gaunt'
+date: '2023-12-21'
+slug: quickie-purrr
+categories: ["R", "Data"]
+tags: ["data storage", "vectorization", '5Min Tutorials']
+description: "Efficient data storage methods beyond CSVs."
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+<script src="{{< blogdown/postref >}}index_files/core-js/shim.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/react/react.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/react/react-dom.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/reactwidget/react-tools.js"></script>
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index_files/reactable-binding/reactable.js"></script>
+
+
+<div id="quick-overview" class="section level1">
+<h1>Quick Overview</h1>
+<p>Hi hi!<br />
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.</p>
+<div id="what-are-we-looking-at-today" class="section level2">
+<h2>What are we looking at today</h2>
+<p>I wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of <code>write.csv()</code>.</p>
+<p>Specifically, using:</p>
+<ul>
+<li><code>qs objects</code></li>
+<li><code>rds objects</code></li>
+<li><code>data.table CSVs</code></li>
+<li><code>base R CSVs</code></li>
+</ul>
+<p><a href="https://github.com/traversc/qs?tab=readme-ov-file#features">Link to qs github page</a> - the features table provides a really great way to compare the main methods we will be looking at.</p>
+</div>
+<div id="how" class="section level2">
+<h2>How</h2>
+<p>We are going to make basic script that creates a pretty large data set and we will use different methods to save and reload it and compare the time it takes to perform this action and the resulting file size of the file that is created.</p>
+</div>
+<div id="what-you-need" class="section level2">
+<h2>What you need</h2>
+<p>Libraries:</p>
+<pre class="r"><code>library(qs)
+library(data.table)
+library(readr)
+library(tictoc)
+library(tidyverse)</code></pre>
+<p>Custom functions:</p>
+<pre class="r"><code>tictoc_seconds = function(toc_object){
+  seconds = toc_object[2]-toc_object[1]
+  return(seconds)
+}
+
+save_and_read_data &lt;- function(extension
+                               ,data
+                               ,dir) {
+  tictoc::tic()
+  
+  file &lt;- here::here(dir, paste0(&quot;myfile.&quot;, extension))
+  
+  if (extension == &quot;qs&quot;) {
+    qsave(data, file)
+    df2 &lt;- qread(file)
+  } else if (extension == &quot;rds&quot;) {
+    readr::write_rds(data, file)
+    df2 &lt;- readr::read_rds(file)
+  } else if (extension == &quot;rds&quot;) {
+    write_rds(data, file)
+    df2 &lt;- read_rds(file)
+  } else if (extension == &quot;dt&quot;) {
+    data.table::fwrite(data, file)
+    df2 &lt;- data.table::fread(file)
+  } else if (extension == &quot;arrow&quot;) {
+    arrow::write_feather(data, file)
+    df2 &lt;- arrow::read_feather(file)
+  } else if (extension == &quot;parquet&quot;) {
+    arrow::write_parquet(data, file)
+    df2 &lt;- arrow::read_parquet(file)
+  } else if (extension == &quot;csv&quot;) {
+    write.csv2(data, file)
+    df2 &lt;- read.csv2(file)
+  } else {
+    stop(&quot;Unsupported file extension. Please use &#39;qs&#39; or &#39;rds&#39;.&quot;)
+  }
+  
+  time_elapsed = tictoc::toc(quiet = T)
+  time_elapsed_seconds &lt;- tictoc_seconds(as.numeric(time_elapsed))
+  file_size &lt;- file.size(file)
+  
+  return(
+    data.frame(
+      extension = extension
+      ,time_elapsed = round(time_elapsed_seconds, 2)
+      ,size = file_size)
+    )
+}</code></pre>
+</div>
+<div id="base-data" class="section level2">
+<h2>Base Data</h2>
+<p>The code below makes the datafame that we will use for this tutorial.</p>
+<pre class="r"><code>set.seed(123)
+
+length_of_dataframe &lt;- 5e6
+
+data &lt;- data.frame(
+  x = seq(1, length_of_dataframe)
+  ,y = 2 * seq(1, length_of_dataframe) + rnorm(length_of_dataframe, mean = 0, sd = length_of_dataframe*.2)
+  ,z = sample(letters, length_of_dataframe, replace = T)
+) %&gt;% 
+  mutate(model = rep(c(&quot;model_1&quot;, &quot;model_2&quot;, &quot;model_3&quot;, &quot;model_4&quot;), length_of_dataframe/4))</code></pre>
+</div>
+<div id="basic-data-storage" class="section level2">
+<h2>Basic Data Storage</h2>
+<p>Here we use each method to store the basic dataframe that we made above.</p>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;dt&quot;, &quot;arrow&quot;, &quot;parquet&quot;, &quot;csv&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = data
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And here is the comparison of how fast each method performed the action and the size of the resulting saved data file.</p>
+<p>We benchmark all methods and metrics to <code>qs</code>.</p>
+<div id="htmlwidget-1" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","dt","arrow","parquet","csv"],"time_elapsed":[2.14,5.05,1.31,1.32,1.65,94.13],"size":[38463456,180000215,178533835,105197946,64073111,247422781],"time_adj":[1,2.4,0.6,0.6,0.8,44],"size_adj":[1,4.7,4.6,2.7,1.7,6.4]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"cb7777d9c0d73897da4c758d99549a25"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>Few points of interest:</p>
+<ul>
+<li>Using <code>write.csv</code> is clearly antiquated, save yourself file storage and time and stop using it.</li>
+<li><code>data.tables</code> is about as fast as <code>arrow</code> but the resulting file is rather large - +4x larger!</li>
+</ul>
+</div>
+<div id="storing-nested-objects" class="section level2">
+<h2>Storing Nested Objects</h2>
+<p>In this section, we use each method to store more complex nested objects.</p>
+<p>I’m not going to explain what they are here in detail but TLDR; you can jam what you normally be separate R objects into a singular object and then save them.</p>
+<p>They are very useful when making derivative items from a <code>main</code> object and then keeping them all together as a unit.</p>
+<pre class="r"><code>#this object has an attribute that holds model summaries
+model_object = data %&gt;% 
+  group_by(model) %&gt;% 
+  nest() %&gt;% 
+  mutate(mod_lm = map(data, ~lm(y~x, data = .x) %&gt;% summary())) %&gt;% 
+  mutate(mod_aic = map(mod_lm, ~.x$r.squared))
+
+#this object just has nested data with no special objects
+nested_data_only = model_object %&gt;% 
+  select(!c(mod_lm))
+
+print(model_object)</code></pre>
+<pre><code>## # A tibble: 4 x 4
+## # Groups:   model [4]
+##   model   data                     mod_lm     mod_aic  
+##   &lt;chr&gt;   &lt;list&gt;                   &lt;list&gt;     &lt;list&gt;   
+## 1 model_1 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 2 model_2 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 3 model_3 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 4 model_4 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;</code></pre>
+<div id="nested-data-only-objects" class="section level3">
+<h3>Nested Data-Only Objects</h3>
+<p>We can apply any method here besides the basic <code>write.csv2()</code> function.</p>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;arrow&quot;, &quot;parquet&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And to compare each method.</p>
+<div id="htmlwidget-2" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","arrow","parquet"],"time_elapsed":[1.78,3.45,0.56,1.5],"size":[37123184,105001438,85007666,64014978],"time_adj":[1,1.9,0.3,0.8],"size_adj":[1,2.8,2.3,1.7]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"3ed825514f332cfb2e7781cca7557f70"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="nested-objects-with-special-attribute" class="section level3">
+<h3>Nested Objects with Special Attribute</h3>
+<p>In this case we perform a common modeling workflow on the data we created above - notice the model object contains:</p>
+<ul>
+<li><code>original data</code></li>
+<li><code>lm summary objects</code></li>
+<li><code>AIC objects</code></li>
+</ul>
+<p>We can only apply <code>qs</code> and <code>rds</code> methods to save model objects.</p>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And to compare each method again.</p>
+<div id="htmlwidget-3" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[1.53,2.82],"size":[37123184,105001438],"time_adj":[1,1.8],"size_adj":[1,2.8]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"83a4e5441a278fefc0e76f268c529af7"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>WOW! <code>qs</code> really takes the cake! I know what I’m using from here on out.</p>
+</div>
+</div>
+<div id="spatial-objects" class="section level2">
+<h2>Spatial Objects</h2>
+<p>Lastly, we’re going to take a look at saving spatial data still in a spatial format.</p>
+<p>Turns out that, like the lm nested dataframe above, arrow and parquet file types can store GIS objects.</p>
+<p>This isn’t a big deal as spatial object can be converted to a non-spatial object with the geometry defined via WKT and then saved with <code>arrow</code> and <code>parquet</code>…. dealers choice!</p>
+<pre class="r"><code>library(mapview)</code></pre>
+<pre><code>## Warning: package &#39;mapview&#39; was built under R version 4.1.3</code></pre>
+<pre class="r"><code>breweries_big = breweries %&gt;% 
+  sample_n(size = 500, replace = T)</code></pre>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = breweries_big
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And to compare each method again.</p>
+<div id="htmlwidget-4" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-4">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.08,0.08],"size":[16628,107782],"time_adj":[1,1],"size_adj":[1,6.5]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"cb46dae8add3dc92da79372bc3e7b503"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="wrap-up" class="section level2">
+<h2>Wrap Up</h2>
+<p>Looks like your best bet is going to be <code>qs</code> or <code>arrow</code> - balancing time with storage space when you make that decision.</p>
+<p>If you have more complex objects with different objects nested in attributes or spatial objects you will be required to use <code>qs</code>.</p>
+</div>
+</div>

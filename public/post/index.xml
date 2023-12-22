@@ -6,7 +6,33 @@
     <description>Recent content in Posts on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 13 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5 Minute Tutorials: Fast Data Loading</title>
+      <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</link>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</guid>
+      <description>Quick OverviewHi hi!
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.
+What are we looking at todayI wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of write.csv().
+Specifically, using:
+qs objectsrds objectsdata.table CSVsbase R CSVsLink to qs github page - the features table provides a really great way to compare the main methods we will be looking at.</description>
+    </item>
+    
+    <item>
+      <title>Kara ❤️ Elon</title>
+      <link>https://mikegaunt404.netlify.app/2023/11/14/kara-heart-elon/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/11/14/kara-heart-elon/</guid>
+      <description>IntroKara loves to talk about Elon Musk.
+A couple of friends asked me how often I thought Kara directly mentions/talks about Elon Musk
+This is my attempt to quantify that.
+MethodThe data used for this was copied directly from the Apple Podcast App website.
+I only use show note descriptions so any reference to Elon in a podcast but not in the show notes will not be counted.</description>
+    </item>
+    
     <item>
       <title>5 Minute Tutorials: Tricks with Purrr::map() #1</title>
       <link>https://mikegaunt404.netlify.app/2023/10/13/quickie-purrr/</link>
