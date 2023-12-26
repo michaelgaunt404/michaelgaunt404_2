@@ -9,10 +9,10 @@
     <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/data-storage/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>5 Minute Tutorials: Fast Data Loading</title>
-      <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</link>
+      <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</link>
       <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
       
-      <guid>https://mikegaunt404.netlify.app/2023/12/21/quickie-purrr/</guid>
+      <guid>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</guid>
       <description>Quick OverviewHi hi!
 This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.
 What are we looking at todayI wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of write.csv().

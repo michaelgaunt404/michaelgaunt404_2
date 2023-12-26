@@ -2,7 +2,7 @@
 title: "5 Minute Tutorials: Fast Data Loading"
 author: 'Mike Gaunt'
 date: '2023-12-21'
-slug: quickie-purrr
+slug: quickie-fast-data-loading
 categories: ["R", "Data"]
 tags: ["data storage", "vectorization", '5Min Tutorials']
 description: "Efficient data storage methods beyond CSVs."
@@ -129,7 +129,7 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;dt&quot;, &quot;arrow&quot;,
 <p>And here is the comparison of how fast each method performed the action and the size of the resulting saved data file.</p>
 <p>We benchmark all methods and metrics to <code>qs</code>.</p>
 <div id="htmlwidget-1" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","dt","arrow","parquet","csv"],"time_elapsed":[2.14,5.05,1.31,1.32,1.65,94.13],"size":[38463456,180000215,178533835,105197946,64073111,247422781],"time_adj":[1,2.4,0.6,0.6,0.8,44],"size_adj":[1,4.7,4.6,2.7,1.7,6.4]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"cb7777d9c0d73897da4c758d99549a25"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","dt","arrow","parquet","csv"],"time_elapsed":[2.22,4.77,1,1.1,1.79,71.89],"size":[38463456,180000215,178533835,105197946,64073111,247422781],"time_adj":[1,2.1,0.5,0.5,0.8,32.4],"size_adj":[1,4.7,4.6,2.7,1.7,6.4]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"e4895ffa04929875c7d8ffdfcb7c0903"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 <p>Few points of interest:</p>
 <ul>
 <li>Using <code>write.csv</code> is clearly antiquated, save yourself file storage and time and stop using it.</li>
@@ -176,7 +176,7 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;arrow&quot;, &quot;parquet&q
     ,size_adj = round(size/size[1], 1))</code></pre>
 <p>And to compare each method.</p>
 <div id="htmlwidget-2" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","arrow","parquet"],"time_elapsed":[1.78,3.45,0.56,1.5],"size":[37123184,105001438,85007666,64014978],"time_adj":[1,1.9,0.3,0.8],"size_adj":[1,2.8,2.3,1.7]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"3ed825514f332cfb2e7781cca7557f70"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","arrow","parquet"],"time_elapsed":[0.94,2.62,0.41,0.97],"size":[37123184,105001438,85007666,64014978],"time_adj":[1,2.8,0.4,1],"size_adj":[1,2.8,2.3,1.7]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"2ea280245dfab83883d42833a1179147"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="nested-objects-with-special-attribute" class="section level3">
 <h3>Nested Objects with Special Attribute</h3>
@@ -199,7 +199,7 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;%
     ,size_adj = round(size/size[1], 1))</code></pre>
 <p>And to compare each method again.</p>
 <div id="htmlwidget-3" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[1.53,2.82],"size":[37123184,105001438],"time_adj":[1,1.8],"size_adj":[1,2.8]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"83a4e5441a278fefc0e76f268c529af7"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.79,2.38],"size":[37123184,105001438],"time_adj":[1,3],"size_adj":[1,2.8]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"d49478f7d6a0d4e7fb0fe3e7eeb84256"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 <p>WOW! <code>qs</code> really takes the cake! I know what I’m using from here on out.</p>
 </div>
 </div>
@@ -224,7 +224,7 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;%
     ,size_adj = round(size/size[1], 1))</code></pre>
 <p>And to compare each method again.</p>
 <div id="htmlwidget-4" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-4">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.08,0.08],"size":[16628,107782],"time_adj":[1,1],"size_adj":[1,6.5]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"cb46dae8add3dc92da79372bc3e7b503"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-4">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.02,0.03],"size":[16628,107782],"time_adj":[1,1.5],"size_adj":[1,6.5]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"e082e41f53a7098753b074b1d47d4d13"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="wrap-up" class="section level2">
 <h2>Wrap Up</h2>

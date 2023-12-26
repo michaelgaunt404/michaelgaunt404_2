@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Efficient data storage methods beyond CSVs.'><title>5 Minute Tutorials: Fast Data Loading</title>
+
+<link rel='canonical' href='https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/'>
+
+<link rel="stylesheet" href="/scss/style.min.css"><meta property='og:title' content='5 Minute Tutorials: Fast Data Loading'>
+<meta property='og:description' content='Efficient data storage methods beyond CSVs.'>
+<meta property='og:url' content='https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/'>
+<meta property='og:site_name' content='The Gauntlet: An R Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='data storage' /><meta property='article:tag' content='vectorization' /><meta property='article:tag' content='5Min Tutorials' /><meta property='article:published_time' content='2023-12-21T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-12-21T00:00:00&#43;00:00'/>
+<meta name="twitter:title" content="5 Minute Tutorials: Fast Data Loading">
+<meta name="twitter:description" content="Efficient data storage methods beyond CSVs.">
+    <link rel="shortcut icon" href="favicon.ico" />
+
+    </head>
+    <body class="
+    article-page 
+">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex 
+    
+        on-phone--column extended
+    
+">
+    
+        <aside class="sidebar left-sidebar sticky">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header class="site-info">
+        
+            
+            <figure class="site-avatar">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/mg404_sm_hu94f382ba3df533b045fcdf65f08e39ae_30299_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+
+                
+            </figure>
+            
+        
+        
+        <h1 class="site-name"><a href="/">The Gauntlet: An R Blog</a></h1>
+        <h2 class="site-description">Data Scientist, R Enthusiast</h2></header>
+
+    <ol class="menu" id="main-menu">
+        
+        
+        
+
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://github.com/michaelgaunt404/' >
+                
+                
+                
+                <span>GitHub</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://gitlab.com/michaelgaunt404/' >
+                
+                
+                
+                <span>GitLab</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://twitter.com/rstudio/' >
+                
+                
+                
+                <span>Twitter</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://plotly-r.com/client-side-linking.html' >
+                
+                
+                
+                <span>Youtube</span>
+            </a>
+        </li>
+        
+
+        
+            <li id="dark-mode-toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                <span>Dark Mode</span>
+            </li>
+        
+    </ol>
+</aside>
+
+    
+<main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/r/" >
+                R
+            </a>
+        
+            <a href="/categories/data/" >
+                Data
+            </a>
+        
+    </header>
+    
+
+    <h2 class="article-title">
+        <a href="/2023/12/21/quickie-fast-data-loading/">5 Minute Tutorials: Fast Data Loading</a>
+    </h2>
+
+    
+    <h3 class="article-subtitle">
+        Efficient data storage methods beyond CSVs.
+    </h3>
+    
+
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 21, 2023</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    5 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+</div>
+</header>
+
+    <section class="article-content">
+    
+<script src="https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/core-js/shim.min.js"></script>
+<script src="https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/react/react.min.js"></script>
+<script src="https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/react/react-dom.min.js"></script>
+<script src="https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/reactwidget/react-tools.js"></script>
+<script src="https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/reactable-binding/reactable.js"></script>
+
+
+<div id="quick-overview" class="section level1">
+<h1>Quick Overview</h1>
+<p>Hi hi!<br />
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.</p>
+<div id="what-are-we-looking-at-today" class="section level2">
+<h2>What are we looking at today</h2>
+<p>I wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of <code>write.csv()</code>.</p>
+<p>Specifically, using:</p>
+<ul>
+<li><code>qs objects</code></li>
+<li><code>rds objects</code></li>
+<li><code>data.table CSVs</code></li>
+<li><code>base R CSVs</code></li>
+</ul>
+<p><a href="https://github.com/traversc/qs?tab=readme-ov-file#features">Link to qs github page</a> - the features table provides a really great way to compare the main methods we will be looking at.</p>
+</div>
+<div id="how" class="section level2">
+<h2>How</h2>
+<p>We are going to make basic script that creates a pretty large data set and we will use different methods to save and reload it and compare the time it takes to perform this action and the resulting file size of the file that is created.</p>
+</div>
+<div id="what-you-need" class="section level2">
+<h2>What you need</h2>
+<p>Libraries:</p>
+<pre class="r"><code>library(qs)
+library(data.table)
+library(readr)
+library(tictoc)
+library(tidyverse)</code></pre>
+<p>Custom functions:</p>
+<pre class="r"><code>tictoc_seconds = function(toc_object){
+  seconds = toc_object[2]-toc_object[1]
+  return(seconds)
+}
+
+save_and_read_data &lt;- function(extension
+                               ,data
+                               ,dir) {
+  tictoc::tic()
+  
+  file &lt;- here::here(dir, paste0(&quot;myfile.&quot;, extension))
+  
+  if (extension == &quot;qs&quot;) {
+    qsave(data, file)
+    df2 &lt;- qread(file)
+  } else if (extension == &quot;rds&quot;) {
+    readr::write_rds(data, file)
+    df2 &lt;- readr::read_rds(file)
+  } else if (extension == &quot;rds&quot;) {
+    write_rds(data, file)
+    df2 &lt;- read_rds(file)
+  } else if (extension == &quot;dt&quot;) {
+    data.table::fwrite(data, file)
+    df2 &lt;- data.table::fread(file)
+  } else if (extension == &quot;arrow&quot;) {
+    arrow::write_feather(data, file)
+    df2 &lt;- arrow::read_feather(file)
+  } else if (extension == &quot;parquet&quot;) {
+    arrow::write_parquet(data, file)
+    df2 &lt;- arrow::read_parquet(file)
+  } else if (extension == &quot;csv&quot;) {
+    write.csv2(data, file)
+    df2 &lt;- read.csv2(file)
+  } else {
+    stop(&quot;Unsupported file extension. Please use &#39;qs&#39; or &#39;rds&#39;.&quot;)
+  }
+  
+  time_elapsed = tictoc::toc(quiet = T)
+  time_elapsed_seconds &lt;- tictoc_seconds(as.numeric(time_elapsed))
+  file_size &lt;- file.size(file)
+  
+  return(
+    data.frame(
+      extension = extension
+      ,time_elapsed = round(time_elapsed_seconds, 2)
+      ,size = file_size)
+    )
+}</code></pre>
+</div>
+<div id="base-data" class="section level2">
+<h2>Base Data</h2>
+<p>The code below makes the datafame that we will use for this tutorial.</p>
+<pre class="r"><code>set.seed(123)
+
+length_of_dataframe &lt;- 5e6
+
+data &lt;- data.frame(
+  x = seq(1, length_of_dataframe)
+  ,y = 2 * seq(1, length_of_dataframe) + rnorm(length_of_dataframe, mean = 0, sd = length_of_dataframe*.2)
+  ,z = sample(letters, length_of_dataframe, replace = T)
+) %&gt;% 
+  mutate(model = rep(c(&quot;model_1&quot;, &quot;model_2&quot;, &quot;model_3&quot;, &quot;model_4&quot;), length_of_dataframe/4))</code></pre>
+</div>
+<div id="basic-data-storage" class="section level2">
+<h2>Basic Data Storage</h2>
+<p>Here we use each method to store the basic dataframe that we made above.</p>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;dt&quot;, &quot;arrow&quot;, &quot;parquet&quot;, &quot;csv&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = data
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And here is the comparison of how fast each method performed the action and the size of the resulting saved data file.</p>
+<p>We benchmark all methods and metrics to <code>qs</code>.</p>
+<div id="htmlwidget-1" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","dt","arrow","parquet","csv"],"time_elapsed":[2.22,4.77,1,1.1,1.79,71.89],"size":[38463456,180000215,178533835,105197946,64073111,247422781],"time_adj":[1,2.1,0.5,0.5,0.8,32.4],"size_adj":[1,4.7,4.6,2.7,1.7,6.4]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"e4895ffa04929875c7d8ffdfcb7c0903"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>Few points of interest:</p>
+<ul>
+<li>Using <code>write.csv</code> is clearly antiquated, save yourself file storage and time and stop using it.</li>
+<li><code>data.tables</code> is about as fast as <code>arrow</code> but the resulting file is rather large - +4x larger!</li>
+</ul>
+</div>
+<div id="storing-nested-objects" class="section level2">
+<h2>Storing Nested Objects</h2>
+<p>In this section, we use each method to store more complex nested objects.</p>
+<p>I’m not going to explain what they are here in detail but TLDR; you can jam what you normally be separate R objects into a singular object and then save them.</p>
+<p>They are very useful when making derivative items from a <code>main</code> object and then keeping them all together as a unit.</p>
+<pre class="r"><code>#this object has an attribute that holds model summaries
+model_object = data %&gt;% 
+  group_by(model) %&gt;% 
+  nest() %&gt;% 
+  mutate(mod_lm = map(data, ~lm(y~x, data = .x) %&gt;% summary())) %&gt;% 
+  mutate(mod_aic = map(mod_lm, ~.x$r.squared))
+
+#this object just has nested data with no special objects
+nested_data_only = model_object %&gt;% 
+  select(!c(mod_lm))
+
+print(model_object)</code></pre>
+<pre><code>## # A tibble: 4 x 4
+## # Groups:   model [4]
+##   model   data                     mod_lm     mod_aic  
+##   &lt;chr&gt;   &lt;list&gt;                   &lt;list&gt;     &lt;list&gt;   
+## 1 model_1 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 2 model_2 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 3 model_3 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 4 model_4 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;</code></pre>
+<div id="nested-data-only-objects" class="section level3">
+<h3>Nested Data-Only Objects</h3>
+<p>We can apply any method here besides the basic <code>write.csv2()</code> function.</p>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;arrow&quot;, &quot;parquet&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And to compare each method.</p>
+<div id="htmlwidget-2" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","arrow","parquet"],"time_elapsed":[0.94,2.62,0.41,0.97],"size":[37123184,105001438,85007666,64014978],"time_adj":[1,2.8,0.4,1],"size_adj":[1,2.8,2.3,1.7]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"2ea280245dfab83883d42833a1179147"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="nested-objects-with-special-attribute" class="section level3">
+<h3>Nested Objects with Special Attribute</h3>
+<p>In this case we perform a common modeling workflow on the data we created above - notice the model object contains:</p>
+<ul>
+<li><code>original data</code></li>
+<li><code>lm summary objects</code></li>
+<li><code>AIC objects</code></li>
+</ul>
+<p>We can only apply <code>qs</code> and <code>rds</code> methods to save model objects.</p>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And to compare each method again.</p>
+<div id="htmlwidget-3" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.79,2.38],"size":[37123184,105001438],"time_adj":[1,3],"size_adj":[1,2.8]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"d49478f7d6a0d4e7fb0fe3e7eeb84256"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>WOW! <code>qs</code> really takes the cake! I know what I’m using from here on out.</p>
+</div>
+</div>
+<div id="spatial-objects" class="section level2">
+<h2>Spatial Objects</h2>
+<p>Lastly, we’re going to take a look at saving spatial data still in a spatial format.</p>
+<p>Turns out that, like the lm nested dataframe above, arrow and parquet file types can store GIS objects.</p>
+<p>This isn’t a big deal as spatial object can be converted to a non-spatial object with the geometry defined via WKT and then saved with <code>arrow</code> and <code>parquet</code>…. dealers choice!</p>
+<pre class="r"><code>library(mapview)</code></pre>
+<pre><code>## Warning: package &#39;mapview&#39; was built under R version 4.1.3</code></pre>
+<pre class="r"><code>breweries_big = breweries %&gt;% 
+  sample_n(size = 500, replace = T)</code></pre>
+<pre class="r"><code>tempdir = tempdir()
+
+df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = breweries_big
+    ,dir = tempdir)) %&gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))</code></pre>
+<p>And to compare each method again.</p>
+<div id="htmlwidget-4" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-4">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.02,0.03],"size":[16628,107782],"time_adj":[1,1.5],"size_adj":[1,6.5]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"e082e41f53a7098753b074b1d47d4d13"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="wrap-up" class="section level2">
+<h2>Wrap Up</h2>
+<p>Looks like your best bet is going to be <code>qs</code> or <code>arrow</code> - balancing time with storage space when you make that decision.</p>
+<p>If you have more complex objects with different objects nested in attributes or spatial objects you will be required to use <code>qs</code>.</p>
+</div>
+</div>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/data-storage/">data storage</a>
+        
+            <a href="/tags/vectorization/">vectorization</a>
+        
+            <a href="/tags/5min-tutorials/">5Min Tutorials</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+</article>
+
+    <aside class="related-contents--wrapper">
+    
+    
+        <h2 class="section-title">Related contents</h2>
+        <div class="related-contents">
+            <div class="flex article-list--tile">
+                
+                    
+<article class="">
+    <a href="/2023/10/13/quickie-purrr/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">5 Minute Tutorials: Tricks with Purrr::map() #1</h2>
+        </div>
+    </a>
+</article>
+                
+                    
+<article class="">
+    <a href="/2023/11/14/kara-heart-elon/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Kara ❤️ Elon</h2>
+        </div>
+    </a>
+</article>
+                
+                    
+<article class="">
+    <a href="/2023/10/02/purrr-correlation-plots/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Clean that Code up with purrr</h2>
+        </div>
+    </a>
+</article>
+                
+            </div>
+        </div>
+    
+</aside>
+
+     
+    
+        
+    <div class="disqus-container">
+    
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (DISQUS) {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2023 The Gauntlet: An R Blog
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.5.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css"integrity="sha256-c0uckgykQ9v5k&#43;IqViZOZKc47Jn7KQil4/MP3ySA3F8="crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css"integrity="sha256-SBLU4vv6CA6lHsZ1XyTdhyjJxCjPif/TRkjnsyGAGnE="crossorigin="anonymous"
+            >
+
+            </main>
+    
+
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.5/dist/vibrant.min.js"integrity="sha256-5NovOZc4iwiAWTYIFiIM7DxKUXKWvpVEuMEPLzcm5/g="crossorigin="anonymous"
+                defer="false"
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

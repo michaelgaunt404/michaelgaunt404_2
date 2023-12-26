@@ -2,7 +2,7 @@
 title: "5 Minute Tutorials: Fast Data Loading"
 author: 'Mike Gaunt'
 date: '2023-12-21'
-slug: quickie-purrr
+slug: quickie-fast-data-loading
 categories: ["R", "Data"]
 tags: ["data storage", "vectorization", '5Min Tutorials']
 description: "Efficient data storage methods beyond CSVs."
