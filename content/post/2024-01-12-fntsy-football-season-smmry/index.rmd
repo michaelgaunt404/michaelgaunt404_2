@@ -1,0 +1,83 @@
+---
+title: fntsy_football_season_smmry
+author: ''
+date: '2024-01-12'
+slug: fntsy-football-season-smmry
+categories: []
+tags: []
+description: ~
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+```{r message=FALSE, warning=FALSE}
+# library(qs)
+# library(data.table)
+# library(readr)
+# library(tictoc)
+library(tidyverse)
+library(plotly)
+```
+
+
+```{r}
+df = data.frame(
+  stringsAsFactors = FALSE,
+              Rank = c(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L),
+              Team = c("Multiple Scorgasms",
+                       "Bootylicious Backfield","Becca Number 1",
+                       "Degenerate OOze","Shadynasty",
+                       "Mayor of TD City","Dykes on spikes",
+                       "Primetime Posse (We Cumin')","Gruden’s lil’ Goof","Dana’s Daddiez",
+                       "Capt Shawn’s Ol Testies",
+                       "Nothing but cockies"),
+                 w = c(11L, 9L, 11L, 8L, 9L, 9L, 4L, 6L, 8L, 5L, 5L, 5L),
+                 l = c(4L, 6L, 4L, 7L, 6L, 6L, 11L, 9L, 7L, 10L, 10L, 10L),
+                 t = c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L),
+                PF = c(1851L,1537L,1752L,1605L,
+                       1627L,1541L,1606L,1343L,1479L,1397L,1492L,1409L),
+                PA = c(1513L,1465L,1460L,1725L,
+                       1520L,1452L,1641L,1496L,1583L,1542L,1652L,1589L),
+            Streak = c("L-1","L-1","W-1","W-1",
+                       "W-3","L-1","L-4","L-4","L-2","W-1","W-2","W-2"),
+            Waiver = c(2L, 11L, 8L, 10L, 7L, 9L, 12L, 4L, 3L, 6L, 1L, 5L),
+             Moves = c(25L,60L,11L,72L,27L,20L,
+                       13L,14L,23L,9L,27L,12L)
+) %>% 
+  mutate(point_differential = PF-PA)
+```
+
+
+```{r}
+df %>% 
+  
+plot_ly(
+  x = ~PF, y = ~PA, color = ~PA/PF, text = ~Team, hoverinfo = "text"
+)
+
+```
+
+```{r}
+df %>% 
+  filter(Team != "Dykes on spikes") %>% 
+  lm(w~PF, .) %>% 
+  summary()
+  ggplot(aes(PF, w)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+
+```{r}
+df %>% 
+  ggplot(aes(point_differential, w)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+plot_ly(
+  x = ~point_differential, y = ~w, color = ~PA/PF, text = ~Team, hoverinfo = "text"
+)
+```
+

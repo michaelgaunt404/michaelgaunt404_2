@@ -58,10 +58,13 @@ Monthly frequency of tech personalities direct mentions in Pivot podcast descrip
 ```{r echo=FALSE}
 person_counts = c("Elon", "Bezos", "Zuckerberg") %>% 
   map_df(~{
+    x = .x
     data_pro %>% 
-      mutate(flag_detect = str_detect(desc, .x)) %>% 
-      mutate(variable = .x)
-  })
+      mutate(flag_detect = str_detect(desc, x)) %>% 
+      mutate(asshole = x)
+  }) %>% 
+  ungroup() %>% 
+  arrange(date)
 ```
 
 ```{r echo=FALSE}
@@ -74,7 +77,7 @@ temp_data = person_counts %>%
     ,col = count
     ,rnd = 2
   ) %>% 
-  filter(flag_detect) %>% 
+  filter(flag_detect) %>%
   complete(floor_month, variable, flag_detect, fill = list(count = 0, percent = 0)) %>% 
   group_by(variable) %>%
   mutate(gauntlet::auto_make_rMean_col(col = count, width = 3)) %>% 
@@ -83,7 +86,7 @@ temp_data = person_counts %>%
 temp_data_sh = SharedData$new(temp_data)
 
 bscols(
-  widths = c(12)
+  widths = c(3, 12, 12)
        ,filter_select(id = "id_1_zz",label = "Pick an Asshole: ", sharedData = temp_data_sh, multiple = T, group = ~variable)
        ,subplot(
          temp_data_sh %>% 
@@ -147,6 +150,58 @@ bscols(
 ```
 
 
+```{r}
+# install.packages("tidytext")
+# library(jsonlite)
+# metadata <- fromJSON("https://data.nasa.gov/data.json")
+# 
+# library(tidytext)
+# 
+# person_counts_words = person_counts %>%
+#   filter(flag_detect) %>% 
+#   select(episode, desc) %>% 
+#   unnest_tokens(word, desc) %>% 
+#   anti_join(stop_words)
+# 
+# person_counts_words %>% 
+#   # count(word, sort = TRUE) %>% 
+#   # select(date, word) %>% 
+#   pairwise_count(word, episode, sort = TRUE, upper = FALSE) %>% view()
+
+
+
+
+
+
+
+
+
+# person_counts %>% 
+#   mutate(desc = gsub("Send us your Listener Mail.*", "\\1", desc) %>%  
+#             gsub("Visit podcastchoices.*", "\\1",.) %>% 
+#            gsub("Learn more about your ad choices.*", "\\1",.) %>% 
+#            str_remove_all(., "Kara and Scott talk about|Kara and Scott talk|Kara and Scott discuss")
+#            ) %>% 
+#   select(desc) %>%  
+#   unique() %>% 
+#   view()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
 
 
 
