@@ -6,3 +6,7 @@
 .DS_Store
 .hugo_build.lock
 Thumbs.db
+
+.qs
+.csv
+
