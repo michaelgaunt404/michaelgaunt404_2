@@ -1,0 +1,131 @@
+yolo$url
+yolo$headers
+yolo$request
+yolo$
+  jsonlite::fromJSON(yolo$content)
+yolo$content
+rawToChar(yolo$content)
+rawToChar(yolo$content) |>
+  rvest::read_html()
+rawToChar(yolo$content) |>
+  shiny::HTML()
+rawToChar(yolo$content) |>
+  shiny::HTML() |>
+  rvest::html_node("head")
+rawToChar(yolo$content) |>
+  shiny::HTML()
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest::submit_form (search_1)
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest::session_submit(search_1)
+#> Warning: Setting value of hidden field "hl".
+#> 
+#> 
+#>
+yolo = rvest:::submit_form(search_1)
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest::html_form_submit(search_1)
+yolo
+yolo$status_code
+yolo |> read_html()
+yolo |> read_html() |> html_node("head")
+rawToChar(yolo$content) |>
+  shiny::HTML() |>
+  html_nodes()
+yolo |> read_html() |> html_nodes()
+yolo |> read_html() |> rvest::read_html_live()
+sess <- read_html_live("https://www.forbes.com/top-colleges/")
+sess$view()
+search_1 <- search %>% html_form_set(q = "rugby", hl = "fr")
+rvest::html_form_submit(search_1) |> read_html() |> rvest::read_html_live()
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo =
+  sess rvest::html_form_submit(search_1) |> read_html() |> rvest::read_html_live()
+sess = rvest::html_form_submit(search_1) |> read_html() |> rvest::read_html_live()
+sess$view()
+rvest::html_form_submit(search_1) |> read_html()
+search_1
+sess = rvest::html_form_submit(search_1)
+sess = sess$url |> rvest::read_html_live()
+sess$view()
+runApp()
+install.packages("shinyWidgets")
+runApp()
+install.packages("shinycssloaders")
+runApp()
+install.packages("googleway")
+runApp()
+install.packages("RPostgreSQL")
+runApp()
+install.packages("RCurl")
+runApp()
+mapview::mapview()
+
+
+
+
+
+
+#> Warning: Setting value of hidden field "hl".
+#>
+html_form_submit(search_1)
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = html_form_submit(search_1)
+yolo
+yolo$content
+yolo$url
+yolo$headers
+yolo$request
+yolo$
+  jsonlite::fromJSON(yolo$content)
+yolo$content
+rawToChar(yolo$content)
+rawToChar(yolo$content) |>
+  rvest::read_html()
+rawToChar(yolo$content) |>
+  shiny::HTML()
+rawToChar(yolo$content) |>
+  shiny::HTML() |>
+  rvest::html_node("head")
+rawToChar(yolo$content) |>
+  shiny::HTML()
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest::submit_form (search_1)
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest::session_submit(search_1)
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest:::submit_form(search_1)
+#> Warning: Setting value of hidden field "hl".
+#>
+yolo = rvest::html_form_submit(search_1)
+yolo
+yolo$status_code
+yolo |> read_html()
+yolo |> read_html() |> html_node("head")
+rawToChar(yolo$content) |>
+  shiny::HTML() |>
+  html_nodes()
+yolo |> read_html() |> html_nodes()
+yolo |> read_html() |> rvest::read_html_live()
+sess <- read_html_live("https://www.forbes.com/top-colleges/")
+
+
+
+
+
+
+
+
+
+
+
+
+

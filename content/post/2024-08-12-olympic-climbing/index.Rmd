@@ -1,0 +1,161 @@
+---
+title: olympic_climbing
+author: ''
+date: '2024-08-12'
+slug: olympic-climbing
+categories: []
+tags:
+  - t_1
+  - t_2
+description: ~
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+data = here::here(
+  "content/post/2024-08-12-olympic-climbing"
+  ,"olympic_climbing_results.csv"
+) %>% 
+  read.csv() %>% 
+  data.frame() %>% 
+  select(Climber:Comp)
+```
+
+```{r}
+data_pro = data %>% 
+  mutate(
+    across(
+      starts_with("Points_")
+      ,~gsub("\\(.*", "\\1",as.character(.x)  ) %>% 
+        as.numeric()
+    )) %>% 
+  group_by(Sex, Comp) %>% 
+  arrange(desc(Points_T)) %>% 
+  mutate(rank = row_number()) %>%  
+  arrange(desc(Points_B)) %>% 
+  mutate(rank_B = row_number()) %>%  
+  arrange(desc(Points_L)) %>% 
+  mutate(rank_L = row_number()) %>% 
+  mutate(rank_Comb = rank_L + rank_B
+         ,ratio_b = Points_B/Points_T
+         ,ratio_c = Points_L/Points_T
+         ,ratio_cb = ratio_c/ratio_b
+         ,points_b_n = 100*Points_B/max(Points_B)
+         ,points_l_n = 100*Points_L/max(Points_L)
+         ,points_t_n = points_b_n+points_l_n
+         ,ratio_b_n = points_b_n/points_t_n
+         ,ratio_c_n = points_l_n/points_t_n
+         ,ratio_cb_n = ratio_c_n/ratio_b_n) %>% 
+  arrange(rank_Comb) %>% 
+  mutate(rank_N = row_number()) %>%
+  group_by(Climber) %>%  
+  mutate(qual = case_when(n()>1~"Qual", T~"DNQ")) %>%  
+  ungroup()
+  
+
+
+```
+
+```{r}
+data_pro %>% 
+  # ggplot() + 
+  ggplot(aes(Points_B)) + 
+   geom_step(aes(y =..y..), stat="ecdf") +
+  # geom_histogram(aes(y = ..density..)) +
+  # geom_density() + 
+  # geom_abline(slope = 1) + 
+  facet_grid(cols = vars(Sex), rows = vars(Comp))
+```
+
+
+
+
+```{r}
+data_pro %>% 
+  ggplot() + 
+  geom_point(aes(Points_B, Points_L, color = qual)) + 
+  geom_abline(slope = 1) + 
+  facet_grid(cols = vars(Sex), rows = vars(Comp)) 
+```
+
+```{r}
+data_pro %>% 
+  ggplot() + 
+  geom_point(aes(Points_B, points_b_n,  color = qual)) + 
+  geom_abline(slope = 1) + 
+  facet_grid(cols = vars(Sex), rows = vars(Comp)) 
+
+data_pro %>% 
+  ggplot() + 
+  geom_point(aes(Points_L, points_l_n,  color = qual)) + 
+  geom_abline(slope = 1) + 
+  facet_grid(cols = vars(Sex), rows = vars(Comp)) 
+```
+
+```{r}
+data_pro %>% 
+  ggplot() + 
+  geom_point(aes(points_b_n, points_l_n, color = qual, size = points_l_n + points_b_n)) + 
+  geom_abline(slope = 1) + 
+  facet_grid(cols = vars(Sex), rows = vars(Comp)) 
+```
+
+```{r}
+data_pro %>% 
+  group_by(Sex, Comp) %>% 
+  summarise(mean = mean(ratio_c)/mean(ratio_b))
+
+data_pro %>% 
+  mutate(mean_ratio = (ratio_c)/(ratio_b)) %>% 
+  ggplot() + 
+  geom_boxplot(aes(Sex, mean_ratio, fill  = as.factor(Comp)))
+```
+
+
+
+```{r}
+data_pro %>% 
+  pivot_longer(cols = c(Points_B, Points_L, points_b_n, points_l_n)) %>% 
+  filter(Comp == "Semis") %>% 
+  arrange(Points_T) %>% 
+  mutate(Climber = fct_inorder(Climber)
+         ,flag = str_detect(name, "_n")) %>% 
+  ggplot() + 
+  geom_col(aes(Climber, value,  fill = name)) + 
+  # geom_abline(slope = 1) + 
+  facet_grid(cols = vars(Sex), rows = vars(flag), scales = "free") 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,192 @@
+---
+title: "Quarto Layout Template"
+author: "Mike Gaunt"
+format: 
+  dashboard:
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+library(plotly)
+library(reactable)
+library(crosstalk)
+```
+
+```{r}
+plot = plot_ly(data = mtcars, x = ~wt, y = ~qsec, color = ~gear)
+table = reactable(mtcars)
+```
+
+```{r}
+plot = plot_ly(data = mtcars, x = ~wt, y = ~qsec, color = ~gear)
+mtcars_sd = SharedData$new(mtcars
+                           ,group = "mtcars_subset")
+
+mtcars_small = SharedData$new(mtcars %>% filter(hp > 160)
+                           ,group = "mtcars_subset")
+
+temp_crosstalk = bscols(
+  widths = c(6,6)
+  ,plot_ly(mtcars_small, x = ~disp, y = ~hp, color = ~vs)
+  ,table = reactable(
+    mtcars_sd
+    ,columns = list(
+      vs = colDef(show = FALSE)
+      ,am = colDef(show = FALSE)
+      ,gear = colDef(show = FALSE)
+      ,carb = colDef(show = FALSE)
+    ), onClick = "select", selection = "multiple")
+)
+```
+
+```{r}
+
+shared_df <- SharedData$new(iris)
+
+item = bscols(
+  widths = c(5, 5)
+  ,ggplotly(ggplot(shared_df) +
+      geom_point(aes(x = Sepal.Width, y = Sepal.Length, colour = Species)))
+  ,reactable(shared_df
+             , onClick = "select", selection = "multiple"))
+
+
+```
+
+# Bills
+
+```{r}
+plot
+```
+
+# Columns Sub Rows {orientation="columns" scrolling="true"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column
+
+```{r}
+#| title: "Research Needs Gap Table"
+plot
+```
+
+```{r}
+plot
+```
+
+# Columns Sub Rows w/Tab {orientation="columns" scrolling="false"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column
+
+```{r}
+table
+```
+
+### Row {.tabset}
+
+#### Header 1
+
+```{r}
+plot
+```
+
+#### Header 2
+
+```{r}
+table
+```
+
+#### Header 3
+
+```{r}
+table
+```
+
+###  {.unnumbered}
+
+# Col Sub Rows w/Tab Adj Hght {orientation="columns" scrolling="false"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column {width="70%"}
+
+### Row {height="30%"}
+
+```{r}
+table
+```
+
+### Row {.tabset height="70%"}
+
+#### Header 1
+
+```{r}
+plot
+```
+
+#### Header 2
+
+```{r}
+table
+```
+
+#### Header 3
+
+```{r}
+table
+```
+
+###  {.unnumbered}
+
+# Columns Sub Rows w/Tab {orientation="columns" scrolling="false"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column {width="70%"}
+
+### Row {height="30%"}
+
+```{r}
+table
+```
+
+### Row {.tabset, height=70%}
+
+#### Header 1
+
+```{r}
+plot
+```
+
+#### Header 2
+
+```{r}
+table
+```
+
+#### Header 3
+
+```{r}
+table
+```
+
+###  {.unnumbered}

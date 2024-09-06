@@ -1,0 +1,268 @@
+---
+title: "Quarto Layout Template"
+author: "Mike Gaunt"
+format: 
+  dashboard:
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+library(plotly)
+library(reactable)
+library(crosstalk)
+```
+
+```{r}
+plot = plot_ly(data = mtcars, x = ~wt, y = ~qsec, color = ~gear)
+table = reactable(mtcars)
+```
+
+```{r}
+plot = plot_ly(data = mtcars, x = ~wt, y = ~qsec, color = ~gear)
+mtcars_sd = SharedData$new(mtcars
+                           ,group = "mtcars_subset")
+
+mtcars_small = SharedData$new(mtcars %>% filter(hp > 160)
+                           ,group = "mtcars_subset")
+
+temp_crosstalk = bscols(
+  widths = c(6,6)
+  ,plot_ly(mtcars_small, x = ~disp, y = ~hp, color = ~vs)
+  ,table = reactable(
+    mtcars_sd
+    ,columns = list(
+      vs = colDef(show = FALSE)
+      ,am = colDef(show = FALSE)
+      ,gear = colDef(show = FALSE)
+      ,carb = colDef(show = FALSE)
+    ), onClick = "select", selection = "multiple")
+)
+```
+
+```{r}
+
+shared_df <- SharedData$new(iris)
+
+item = bscols(
+  widths = c(5, 5)
+  ,ggplotly(ggplot(shared_df) +
+      geom_point(aes(x = Sepal.Width, y = Sepal.Length, colour = Species)))
+  ,reactable(shared_df
+             , onClick = "select", selection = "multiple"))
+
+
+```
+
+# Bills
+
+```{r}
+plot
+```
+
+# Bills {orientation="columns" scrolling="true"}
+
+## Column {width="70%"}
+
+```{r}
+bslib::card(
+  bslib::card_header(
+    class = "bg-dark"
+    ,"Test"
+  )
+  ,bslib::card_body(
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Commodo odio aenean sed adipiscing diam donec adipiscing tristique. Sit amet purus gravida quis blandit turpis cursus. Egestas sed sed risus pretium quam vulputate dignissim suspendisse in. Sem nulla pharetra diam sit. Proin sed libero enim sed. Nullam eget felis eget nunc lobortis mattis aliquam faucibus purus. Magna eget est lorem ipsum dolor sit amet consectetur adipiscing. Egestas dui id ornare arcu odio. Donec adipiscing tristique risus nec feugiat. Urna et pharetra pharetra massa massa ultricies. Euismod nisi porta lorem mollis aliquam ut. Nibh venenatis cras sed felis eget velit aliquet sagittis. Suspendisse sed nisi lacus sed. Adipiscing enim eu turpis egestas pretium. Accumsan sit amet nulla facilisi morbi. Elit ut aliquam purus sit amet luctus venenatis.\n
+
+Non quam lacus suspendisse faucibus interdum posuere. Nisl purus in mollis nunc sed id. Nibh ipsum consequat nisl vel pretium lectus quam id leo. Erat velit scelerisque in dictum non consectetur a erat. Vitae tempus quam pellentesque nec. Habitasse platea dictumst quisque sagittis purus sit amet. Sit amet commodo nulla facilisi nullam vehicula ipsum a arcu. Eu scelerisque felis imperdiet proin fermentum leo vel orci porta. Amet nulla facilisi morbi tempus iaculis urna id. Semper risus in hendrerit gravida. Proin sed libero enim sed faucibus turpis in eu mi.
+
+Eu ultrices vitae auctor eu augue ut lectus. Mauris nunc congue nisi vitae suscipit tellus mauris a. Adipiscing elit ut aliquam purus. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Faucibus ornare suspendisse sed nisi lacus sed viverra. Magna etiam tempor orci eu lobortis elementum nibh tellus. Sapien faucibus et molestie ac feugiat sed lectus. Etiam dignissim diam quis enim lobortis scelerisque fermentum dui. Iaculis at erat pellentesque adipiscing commodo elit at imperdiet dui. Pretium viverra suspendisse potenti nullam. Gravida in fermentum et sollicitudin ac. Ullamcorper dignissim cras tincidunt lobortis feugiat vivamus. Risus feugiat in ante metus dictum at tempor commodo ullamcorper. Lorem mollis aliquam ut porttitor leo a diam sollicitudin."
+
+  ),
+  bslib::card_footer(
+    "Some text with a [link](https://github.com)"
+  )
+)
+
+
+```
+
+## Column {width="30%"}
+
+```{r}
+bslib::card(
+  bslib::card_header(
+    class = "bg-dark"
+    ,"Test"
+  )
+  ,bslib::card_body(
+    shiny::markdown("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Commodo odio aenean sed adipiscing diam donec adipiscing tristique. Sit amet purus gravida quis blandit turpis cursus. Egestas sed sed risus pretium quam vulputate dignissim suspendisse in. Sem nulla pharetra diam sit. Proin sed libero enim sed. Nullam eget felis eget nunc lobortis mattis aliquam faucibus purus. Magna eget est lorem ipsum dolor sit amet consectetur adipiscing. Egestas dui id ornare arcu odio. Donec adipiscing tristique risus nec feugiat. Urna et pharetra pharetra massa massa ultricies. Euismod nisi porta lorem mollis aliquam ut. Nibh venenatis cras sed felis eget velit aliquet sagittis. Suspendisse sed nisi lacus sed. Adipiscing enim eu turpis egestas pretium. Accumsan sit amet nulla facilisi morbi. Elit ut aliquam purus sit amet luctus venenatis. <hr>
+
++ Non quam lacus suspendisse faucibus interdum posuere. 
++ Nisl purus in mollis nunc sed id. Nibh ipsum consequat nisl vel pretium lectus quam id leo. 
++ Erat velit scelerisque in dictum non consectetur a erat. Vitae tempus quam pellentesque nec. 
+ + Habitasse platea dictumst quisque sagittis purus sit amet. Sit amet commodo nulla facilisi nullam vehicula ipsum a arcu. Eu scelerisque felis imperdiet proin fermentum leo vel orci porta. Amet nulla facilisi morbi tempus iaculis urna id. Semper risus in hendrerit gravida. Proin sed libero enim sed faucibus turpis in eu mi.
+
+Eu ultrices vitae auctor eu augue ut lectus. Mauris nunc congue nisi vitae suscipit tellus mauris a. Adipiscing elit ut aliquam purus. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Faucibus ornare suspendisse sed nisi lacus sed viverra. Magna etiam tempor orci eu lobortis elementum nibh tellus. Sapien faucibus et molestie ac feugiat sed lectus. Etiam dignissim diam quis enim lobortis scelerisque fermentum dui. Iaculis at erat pellentesque adipiscing commodo elit at imperdiet dui. Pretium viverra suspendisse potenti nullam. Gravida in fermentum et sollicitudin ac. Ullamcorper dignissim cras tincidunt lobortis feugiat vivamus. Risus feugiat in ante metus dictum at tempor commodo ullamcorper. Lorem mollis aliquam ut porttitor leo a diam sollicitudin.")
+
+  ),
+  bslib::card_footer(
+    "Some text with a [link](https://github.com)"
+  )
+)
+```
+
+
+# Bills 3 {orientation="columns" scrolling="true"}
+
+```{r}
+bslib::layout_columns(col_widths = 8,
+               bslib::card(
+                 bslib::card_header(
+                   class = "bg-dark"
+                   ,"Test"
+                 )
+                 ,bslib::card_body(
+                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Commodo odio aenean sed adipiscing diam donec adipiscing tristique. Sit amet purus gravida quis blandit turpis cursus. Egestas sed sed risus pretium quam vulputate dignissim suspendisse in. Sem nulla pharetra diam sit. Proin sed libero enim sed. Nullam eget felis eget nunc lobortis mattis aliquam faucibus purus. Magna eget est lorem ipsum dolor sit amet consectetur adipiscing. Egestas dui id ornare arcu odio. Donec adipiscing tristique risus nec feugiat. Urna et pharetra pharetra massa massa ultricies. Euismod nisi porta lorem mollis aliquam ut. Nibh venenatis cras sed felis eget velit aliquet sagittis. Suspendisse sed nisi lacus sed. Adipiscing enim eu turpis egestas pretium. Accumsan sit amet nulla facilisi morbi. Elit ut aliquam purus sit amet luctus venenatis.\n
+
+Non quam lacus suspendisse faucibus interdum posuere. Nisl purus in mollis nunc sed id. Nibh ipsum consequat nisl vel pretium lectus quam id leo. Erat velit scelerisque in dictum non consectetur a erat. Vitae tempus quam pellentesque nec. Habitasse platea dictumst quisque sagittis purus sit amet. Sit amet commodo nulla facilisi nullam vehicula ipsum a arcu. Eu scelerisque felis imperdiet proin fermentum leo vel orci porta. Amet nulla facilisi morbi tempus iaculis urna id. Semper risus in hendrerit gravida. Proin sed libero enim sed faucibus turpis in eu mi."
+
+                 ),
+bslib::card_footer(
+  "Some text with a [link](https://github.com)"
+)
+               )
+)
+
+
+```
+
+# Columns Sub Rows {orientation="columns" scrolling="true"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column
+
+```{r}
+#| title: "Research Needs Gap Table"
+plot
+```
+
+```{r}
+plot
+```
+
+# Columns Sub Rows w/Tab {orientation="columns" scrolling="false"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column
+
+```{r}
+table
+```
+
+### Row {.tabset}
+
+#### Header 1
+
+```{r}
+plot
+```
+
+#### Header 2
+
+```{r}
+table
+```
+
+#### Header 3
+
+```{r}
+table
+```
+
+###  {.unnumbered}
+
+# Col Sub Rows w/Tab Adj Hght {orientation="columns" scrolling="false"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column {width="70%"}
+
+### Row {height="30%"}
+
+```{r}
+table
+```
+
+### Row {.tabset height="70%"}
+
+#### Header 1
+
+```{r}
+plot
+```
+
+#### Header 2
+
+```{r}
+table
+```
+
+#### Header 3
+
+```{r}
+table
+```
+
+###  {.unnumbered}
+
+# Columns Sub Rows w/Tab {orientation="columns" scrolling="false"}
+
+## Column
+
+```{r}
+plot
+```
+
+## Column {width="70%"}
+
+### Row {height="30%"}
+
+```{r}
+table
+```
+
+### Row {.tabset, height=70%}
+
+#### Header 1
+
+```{r}
+plot
+```
+
+#### Header 2
+
+```{r}
+table
+```
+
+#### Header 3
+
+```{r}
+table
+```
+
+###  {.unnumbered}
