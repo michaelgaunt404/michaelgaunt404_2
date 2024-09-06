@@ -10,3 +10,9 @@ Thumbs.db
 .qs
 .csv
 
+
+*.qs
+
+*.rds
+
+*.xlsx
