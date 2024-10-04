@@ -43,5 +43,16 @@ BackgroundOne major advantage of working with us is the ability to leverage the
 An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R.</description>
     </item>
     
+    <item>
+      <title>Clean that Code up with purrr</title>
+      <link>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</guid>
+      <description>This blog serves as a brief tutorial on how to utilize the purrr package by our studio to streamline and simplify complex or repetitive sections of code.
+BackgroundOne major advantage of working with us is the ability to leverage the power of the Tidyverse R package environment. This package environment, developed by RStudio, is designed to enhance the usability of R.
+An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R.</description>
+    </item>
+    
   </channel>
 </rss>

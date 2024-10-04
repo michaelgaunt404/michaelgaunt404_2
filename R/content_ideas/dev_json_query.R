@@ -1,40 +1,39 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: Different methods for querying API
+#
+# By: mike gaunt, michael.gaunt@wsp.com
+#
+# README: not well organized - pretty loose code
+#-------- should be incoprorated into ablog at some point
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-https://dev.socrata.com/docs/queries/query
-https://github.com/iqis/fountain
+#sec: inputs====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+library(httr)
+library(jsonlite)
+library(tidyverse)
 
-https://soda.demo.socrata.com/resource/4tka-6guv.json?$where=magnitude%20%3E%203.0
+#sec: inputs====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#sec: inputs====
+#sec: basic_query_workflow======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+resp = GET(
+  url, query = list(
+    "$where" = "sideofstreet IN ('S')"
+  ))
 
-add_headers(a = 1, b = 2)
+content = resp %>% content()
 
-%>%
-  paste0(., "?") %>%
-  paste0(., "$select=paidparkingsubarea") %>%
-  paste0(., "$where=sideofstreetIS'S'") %>%
-  jsonlite::read_json()
+#show one query
+content[[1]]
 
-str(tt) %>% head()
-url <- "https://data.seattle.gov/resource/hiyf-7edq.json"
-# url <- "https://soda.demo.socrata.com/resource/4tka-6guv.json"
-# $where=magnitude > 3.0
-tt = GET(url
-         ,query = list(
-           "$where" = "sideofstreet IN ('S')"
-           ,"$select" = "sideofstreet"
-         ))
-
-
-tt = GET(url
-         ,query = list(
-           "$where" = "sideofstreet IN ('S')"
-           ,"$select" = "sideofstreet"
-         ))
-
-tt_c = tt %>% content()
-
-tt_c[[1]]
-
-tt_c_wide = tt_c %>%
+content_wide = content %>%
   enframe() %>%
   unnest_wider(value)
 
@@ -75,6 +74,16 @@ tt_c_wide %>%
 
 
 
+
+
+
+
+
+resp_simp = GET(
+  url, query = list(
+    "$where" = "sideofstreet IN ('S')"
+    ,"$select" = "sideofstreet"
+  ))
 
 
 tt_c_wide
