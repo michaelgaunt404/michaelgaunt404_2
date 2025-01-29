@@ -1,0 +1,129 @@
+---
+title: "5 Minute Tutorials: Using Protocol Buffers in R"
+author: 'Mike Gaunt'
+date: '2025-01-28'
+slug: quickie-protobuf
+categories: ["R", "Programming"]
+tags: ["protobuf", "GTFS", "5Min Tutorials"]
+description: "Quick tutorial on how to use Protocol Buffers in R with GTFS-realtime data."
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+full_path = here::here("content/post/2025-01-29-quickie-proto")
+
+library(tidyverse)
+library(httr)
+library(RProtoBuf)
+library(jsonlite)
+```
+
+# Quick Overview
+
+Hi hi!  
+This is a quick tutorial on using **Protocol Buffers** (protobufs) in R, particularly for working with **GTFS-realtime** data. If you've ever struggled to parse protobuf data, this guide will walk through the key steps to get you started.
+
+## What are Protocol Buffers?
+
+Protocol Buffers (protobufs) are a language-neutral, platform-neutral extensible mechanism for serializing structured data. They are commonly used in real-time data applications, such as **GTFS-realtime**, because they are lightweight and efficient. Unlike JSON or XML, which store data in human-readable formats, protobufs store data in binary format, making them compact and fast to transmit. 
+
+In R, we use the **RProtoBuf** package to read and process protobufs.
+
+# Getting Started
+
+### Checking Available Protobuf Descriptors
+
+A **descriptor pool** is a collection of message types and enums available in a protobuf schema. In R, we can inspect available descriptors with:
+
+```{r}
+ls("RProtoBuf:DescriptorPool")
+```
+
+Descriptors define the structure of the data. Think of them like a schema for a database or the column definitions in a data frame.
+
+### Downloading and Reading the GTFS-realtime Protobuf
+
+GTFS-realtime data uses a predefined protobuf schema. First, download the `.proto` definition file, and then load the protobuf schema into R:
+
+```{r echo=F, message=F}
+proto_file = "https://gtfs.org/documentation/realtime/gtfs-realtime.proto"
+download.file(proto_file, destfile = here::here(full_path, "gtfs-realtime.proto"))
+readProtoFiles("gtfs-realtime.proto")
+```
+
+```{r eval=F}
+proto_file = "https://gtfs.org/documentation/realtime/gtfs-realtime.proto"
+download.file(proto_file, destfile = "gtfs-realtime.proto")
+readProtoFiles("gtfs-realtime.proto")
+```
+
+```{r}
+ls("RProtoBuf:DescriptorPool")
+```
+
+This lets us see the available message types defined in the GTFS-realtime schema.
+
+### Understanding a Protobuf Descriptor
+
+A **descriptor** is like a class definition for a protobuf message. Here’s how we inspect one:
+
+```{r}
+descriptor = RProtoBuf::P("transit_realtime.FeedMessage")
+descriptor
+```
+
+Descriptors define the message structure, including nested message types. In R, they may look similar to functions or methods, but they represent structured data rather than executable code.
+
+# Loading a GTFS-realtime Feed
+
+GTFS-realtime feeds are updated frequently and are stored in **binary format** for efficiency. We need to download and parse them properly.
+
+First, retrieve the binary protobuf feed:
+
+```{r}
+feed_url <- "http://s3.amazonaws.com/commtrans-realtime-prod/tripupdates.pb"
+resp = httr::GET(feed_url)
+feed_data = resp %>% content("raw")
+```
+
+Now, parse the binary data using the descriptor:
+
+```{r}
+gtfs_feed = P("transit_realtime.FeedMessage")$read(feed_data)
+```
+
+The `$read()` function is similar to a method in Python—it’s how we deserialize binary data into a structured format.
+
+### Converting the Feed to JSON
+
+To work with the data more easily, convert it to JSON:
+
+```{r}
+gtfs_feed_json = gtfs_feed$toJSON()
+gtfs_feed_json = jsonlite::fromJSON(gtfs_feed_json, simplifyVector = FALSE)
+```
+
+Now, let’s extract and inspect the entities in the feed:
+
+```{r}
+gtfs_feed_json %>% 
+  .[['entity']] %>% 
+  enframe() %>% 
+  unnest_wider(value) %>% 
+  unnest_wider(tripUpdate)
+```
+
+# Final Thoughts
+
+This tutorial showed how to:
+- Load and inspect GTFS-realtime protobuf schemas
+- Download and parse GTFS-realtime data
+- Convert protobufs to JSON for easier manipulation
+
+Protobufs are an efficient way to handle structured real-time data, and **RProtoBuf** makes it possible to work with them in R.
+
+Thanks for reading, and happy coding!

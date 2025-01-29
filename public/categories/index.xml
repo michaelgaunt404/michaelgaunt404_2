@@ -6,7 +6,25 @@
     <description>Recent content in Categories on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Programming</title>
+      <link>https://mikegaunt404.netlify.app/categories/programming/</link>
+      <pubDate>Tue, 28 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/categories/programming/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>R</title>
+      <link>https://mikegaunt404.netlify.app/categories/r/</link>
+      <pubDate>Tue, 28 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/categories/r/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Data</title>
       <link>https://mikegaunt404.netlify.app/categories/data/</link>
@@ -17,29 +35,11 @@
     </item>
     
     <item>
-      <title>R</title>
-      <link>https://mikegaunt404.netlify.app/categories/r/</link>
-      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/categories/r/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Text Analysis</title>
       <link>https://mikegaunt404.netlify.app/categories/text-analysis/</link>
       <pubDate>Tue, 14 Nov 2023 00:00:00 +0000</pubDate>
       
       <guid>https://mikegaunt404.netlify.app/categories/text-analysis/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Programming</title>
-      <link>https://mikegaunt404.netlify.app/categories/programming/</link>
-      <pubDate>Fri, 13 Oct 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/categories/programming/</guid>
       <description></description>
     </item>
     

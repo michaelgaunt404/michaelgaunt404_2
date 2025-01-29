@@ -6,7 +6,310 @@
         <description>Recent content on The Gauntlet: An R Blog</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
-        <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>5 Minute Tutorials: Using Protocol Buffers in R</title>
+        <link>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</link>
+        <pubDate>Tue, 28 Jan 2025 00:00:00 +0000</pubDate>
+        
+        <guid>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</guid>
+        <description>
+
+
+&lt;div id=&#34;quick-overview&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Quick Overview&lt;/h1&gt;
+&lt;p&gt;Hi hi!&lt;br /&gt;
+This is a quick tutorial on using &lt;strong&gt;Protocol Buffers&lt;/strong&gt; (protobufs) in R, particularly for working with &lt;strong&gt;GTFS-realtime&lt;/strong&gt; data. If you’ve ever struggled to parse protobuf data, this guide will walk through the key steps to get you started.&lt;/p&gt;
+&lt;div id=&#34;what-are-protocol-buffers&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;What are Protocol Buffers?&lt;/h2&gt;
+&lt;p&gt;Protocol Buffers (protobufs) are a language-neutral, platform-neutral extensible mechanism for serializing structured data. They are commonly used in real-time data applications, such as &lt;strong&gt;GTFS-realtime&lt;/strong&gt;, because they are lightweight and efficient. Unlike JSON or XML, which store data in human-readable formats, protobufs store data in binary format, making them compact and fast to transmit.&lt;/p&gt;
+&lt;p&gt;In R, we use the &lt;strong&gt;RProtoBuf&lt;/strong&gt; package to read and process protobufs.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-started&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Getting Started&lt;/h1&gt;
+&lt;div id=&#34;checking-available-protobuf-descriptors&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Checking Available Protobuf Descriptors&lt;/h3&gt;
+&lt;p&gt;A &lt;strong&gt;descriptor pool&lt;/strong&gt; is a collection of message types and enums available in a protobuf schema. In R, we can inspect available descriptors with:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ls(&amp;quot;RProtoBuf:DescriptorPool&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;rexp.CMPLX&amp;quot;                   &amp;quot;rexp.REXP&amp;quot;                   
+## [3] &amp;quot;rexp.STRING&amp;quot;                  &amp;quot;rprotobuf.HelloWorldRequest&amp;quot; 
+## [5] &amp;quot;rprotobuf.HelloWorldResponse&amp;quot; &amp;quot;tutorial.AddressBook&amp;quot;        
+## [7] &amp;quot;tutorial.Person&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Descriptors define the structure of the data. Think of them like a schema for a database or the column definitions in a data frame.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;downloading-and-reading-the-gtfs-realtime-protobuf&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Downloading and Reading the GTFS-realtime Protobuf&lt;/h3&gt;
+&lt;p&gt;GTFS-realtime data uses a predefined protobuf schema. First, download the &lt;code&gt;.proto&lt;/code&gt; definition file, and then load the protobuf schema into R:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;proto_file = &amp;quot;https://gtfs.org/documentation/realtime/gtfs-realtime.proto&amp;quot;
+download.file(proto_file, destfile = &amp;quot;gtfs-realtime.proto&amp;quot;)
+readProtoFiles(&amp;quot;gtfs-realtime.proto&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ls(&amp;quot;RProtoBuf:DescriptorPool&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##  [1] &amp;quot;rexp.CMPLX&amp;quot;                         &amp;quot;rexp.REXP&amp;quot;                         
+##  [3] &amp;quot;rexp.STRING&amp;quot;                        &amp;quot;rprotobuf.HelloWorldRequest&amp;quot;       
+##  [5] &amp;quot;rprotobuf.HelloWorldResponse&amp;quot;       &amp;quot;transit_realtime.Alert&amp;quot;            
+##  [7] &amp;quot;transit_realtime.EntitySelector&amp;quot;    &amp;quot;transit_realtime.FeedEntity&amp;quot;       
+##  [9] &amp;quot;transit_realtime.FeedHeader&amp;quot;        &amp;quot;transit_realtime.FeedMessage&amp;quot;      
+## [11] &amp;quot;transit_realtime.Position&amp;quot;          &amp;quot;transit_realtime.ReplacementStop&amp;quot;  
+## [13] &amp;quot;transit_realtime.Shape&amp;quot;             &amp;quot;transit_realtime.Stop&amp;quot;             
+## [15] &amp;quot;transit_realtime.StopSelector&amp;quot;      &amp;quot;transit_realtime.TimeRange&amp;quot;        
+## [17] &amp;quot;transit_realtime.TranslatedImage&amp;quot;   &amp;quot;transit_realtime.TranslatedString&amp;quot; 
+## [19] &amp;quot;transit_realtime.TripDescriptor&amp;quot;    &amp;quot;transit_realtime.TripModifications&amp;quot;
+## [21] &amp;quot;transit_realtime.TripUpdate&amp;quot;        &amp;quot;transit_realtime.VehicleDescriptor&amp;quot;
+## [23] &amp;quot;transit_realtime.VehiclePosition&amp;quot;   &amp;quot;tutorial.AddressBook&amp;quot;              
+## [25] &amp;quot;tutorial.Person&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This lets us see the available message types defined in the GTFS-realtime schema.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;understanding-a-protobuf-descriptor&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Understanding a Protobuf Descriptor&lt;/h3&gt;
+&lt;p&gt;A &lt;strong&gt;descriptor&lt;/strong&gt; is like a class definition for a protobuf message. Here’s how we inspect one:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;descriptor = RProtoBuf::P(&amp;quot;transit_realtime.FeedMessage&amp;quot;)
+descriptor&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## descriptor for type &amp;#39;transit_realtime.FeedMessage&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Descriptors define the message structure, including nested message types. In R, they may look similar to functions or methods, but they represent structured data rather than executable code.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;loading-a-gtfs-realtime-feed&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Loading a GTFS-realtime Feed&lt;/h1&gt;
+&lt;p&gt;GTFS-realtime feeds are updated frequently and are stored in &lt;strong&gt;binary format&lt;/strong&gt; for efficiency. We need to download and parse them properly.&lt;/p&gt;
+&lt;p&gt;First, retrieve the binary protobuf feed:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;feed_url &amp;lt;- &amp;quot;http://s3.amazonaws.com/commtrans-realtime-prod/tripupdates.pb&amp;quot;
+resp = httr::GET(feed_url)
+feed_data = resp %&amp;gt;% content(&amp;quot;raw&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, parse the binary data using the descriptor:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;gtfs_feed = P(&amp;quot;transit_realtime.FeedMessage&amp;quot;)$read(feed_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The &lt;code&gt;$read()&lt;/code&gt; function is similar to a method in Python—it’s how we deserialize binary data into a structured format.&lt;/p&gt;
+&lt;div id=&#34;converting-the-feed-to-json&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Converting the Feed to JSON&lt;/h3&gt;
+&lt;p&gt;To work with the data more easily, convert it to JSON:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;gtfs_feed_json = gtfs_feed$toJSON()
+gtfs_feed_json = jsonlite::fromJSON(gtfs_feed_json, simplifyVector = FALSE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, let’s extract and inspect the entities in the feed:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;gtfs_feed_json %&amp;gt;% 
+  .[[&amp;#39;entity&amp;#39;]] %&amp;gt;% 
+  enframe() %&amp;gt;% 
+  unnest_wider(value) %&amp;gt;% 
+  unnest_wider(tripUpdate)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 185 × 6
+##     name id                   trip         stopTimeUpdate vehicle      timestamp
+##    &amp;lt;int&amp;gt; &amp;lt;chr&amp;gt;                &amp;lt;list&amp;gt;       &amp;lt;list&amp;gt;         &amp;lt;list&amp;gt;       &amp;lt;chr&amp;gt;    
+##  1     1 1738176218_12867957… &amp;lt;named list&amp;gt; &amp;lt;list [11]&amp;gt;    &amp;lt;named list&amp;gt; 17381761…
+##  2     2 1738176218_12867959… &amp;lt;named list&amp;gt; &amp;lt;list [32]&amp;gt;    &amp;lt;NULL&amp;gt;       &amp;lt;NA&amp;gt;     
+##  3     3 1738176218_12867985… &amp;lt;named list&amp;gt; &amp;lt;list [34]&amp;gt;    &amp;lt;NULL&amp;gt;       &amp;lt;NA&amp;gt;     
+##  4     4 1738176218_12868024… &amp;lt;named list&amp;gt; &amp;lt;list [32]&amp;gt;    &amp;lt;named list&amp;gt; 17381761…
+##  5     5 1738176218_12868028… &amp;lt;named list&amp;gt; &amp;lt;list [27]&amp;gt;    &amp;lt;named list&amp;gt; 17381761…
+##  6     6 1738176218_12868029… &amp;lt;named list&amp;gt; &amp;lt;list [34]&amp;gt;    &amp;lt;NULL&amp;gt;       &amp;lt;NA&amp;gt;     
+##  7     7 1738176218_12867622… &amp;lt;named list&amp;gt; &amp;lt;list [26]&amp;gt;    &amp;lt;NULL&amp;gt;       &amp;lt;NA&amp;gt;     
+##  8     8 1738176218_12867623… &amp;lt;named list&amp;gt; &amp;lt;list [2]&amp;gt;     &amp;lt;NULL&amp;gt;       &amp;lt;NA&amp;gt;     
+##  9     9 1738176218_12867624… &amp;lt;named list&amp;gt; &amp;lt;list [26]&amp;gt;    &amp;lt;named list&amp;gt; 17381761…
+## 10    10 1738176218_12867664… &amp;lt;named list&amp;gt; &amp;lt;list [27]&amp;gt;    &amp;lt;named list&amp;gt; 17381761…
+## # ℹ 175 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;final-thoughts&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Final Thoughts&lt;/h1&gt;
+&lt;p&gt;This tutorial showed how to:
+- Load and inspect GTFS-realtime protobuf schemas
+- Download and parse GTFS-realtime data
+- Convert protobufs to JSON for easier manipulation&lt;/p&gt;
+&lt;p&gt;Protobufs are an efficient way to handle structured real-time data, and &lt;strong&gt;RProtoBuf&lt;/strong&gt; makes it possible to work with them in R.&lt;/p&gt;
+&lt;p&gt;Thanks for reading, and happy coding!&lt;/p&gt;
+&lt;/div&gt;
+</description>
+        </item>
+        <item>
+        <title>Organized Code</title>
+        <link>https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/</link>
+        <pubDate>Wed, 02 Oct 2024 00:00:00 +0000</pubDate>
+        
+        <guid>https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/</guid>
+        <description>
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/core-js/shim.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/react/react.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/react/react-dom.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/reactwidget/react-tools.umd.cjs&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/htmltools-fill/fill.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/reactable/reactable.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/reactable-binding/reactable.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This vignette explains why using a consistent script structure and metadata format is essential for collaboration, efficiency, and reproducibility in R projects. By following a standardized template, you ensure that anyone using your scripts can quickly understand what the script does, who created it, and any specific requirements needed to run it.&lt;/p&gt;
+&lt;p&gt;By the end of this vignette, you’ll be familiar with a script template that helps organize code effectively and facilitates rapid development.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;div id=&#34;why-use-a-standard-template&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Why Use a Standard Template?&lt;/h3&gt;
+&lt;p&gt;Having a standard template ensures:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Consistency&lt;/strong&gt;: Scripts follow the same structure, making it easier for anyone to understand and maintain them.&lt;br /&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Reusability&lt;/strong&gt;: Repeated sections like library loading or path setup can be quickly modified for different environments or projects.&lt;br /&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Error Reduction&lt;/strong&gt;: Code dependencies (such as library loading or data sourcing) are defined in one place, reducing errors due to missing libraries or data.&lt;br /&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Collaboration&lt;/strong&gt;: Team members can easily navigate scripts without needing deep explanations.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-script-template&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;The Script Template&lt;/h3&gt;
+&lt;p&gt;Here is the recommended template for your R scripts.&lt;/p&gt;
+&lt;p&gt;There is a small section at the top that can be populated with specific metadata - script description, author, and additional notes (ReadMe). This information is crucial for anyone coming back to the script later, especially when script names might not be descriptive enough.&lt;/p&gt;
+&lt;p&gt;This section is then followed by clearly defined sections for loading libraries, paths, data, and helper functions.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: This script [[insert brief readme here]]
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: [[insert brief readme here]]
+#-------- [[insert brief readme here]]
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+library(tidyverse)
+library(gauntlet)
+
+#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+#area to upload data with and to perform initial munging
+#please add test data here so that others may use/unit test these scripts
+
+
+#main header====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 1==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 2==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#script end=====================================================================&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;walkthrough-of-the-template&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Walkthrough of the Template&lt;/h3&gt;
+&lt;div id=&#34;metadata-section&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;1. &lt;strong&gt;Metadata Section&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;At the top of every script, include a commented-out section with three elements:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;DESC&lt;/strong&gt;: Briefly explain what the script does.&lt;br /&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;By&lt;/strong&gt;: The name of the person who created the script.&lt;br /&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;README&lt;/strong&gt;: Any additional information for future users, such as requirements, assumptions, or related files.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Here’s what the metadata block should look like:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: Script pre-processes Austin housing data for spatial modeling
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: makes a number of features based on initial feature space
+#-------- converts to spatial object for mapping and GIS purposes
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;library-setup&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;2. &lt;strong&gt;Library Setup&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;After the metadata section, the first executable code should load all the required libraries.&lt;/p&gt;
+&lt;p&gt;Having libraries declared in one place ensures that all dependencies are loaded at the beginning, preventing errors due to missing packages later in the script.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+library(tidyverse)
+library(glue)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;path-setup&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;3. &lt;strong&gt;Path Setup&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Next, define the paths for any input data or outputs. Keeping paths together makes it easier to adapt the script to different file structures without searching through the entire code.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_path = &amp;quot;path/to/data&amp;quot;
+url_data_1 = &amp;#39;www.somedata1.com&amp;#39;
+output_path = &amp;quot;path/to/output&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;sourcedefine-functions&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;4. &lt;strong&gt;Source/Define Functions&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Define all custom functions and source all scripts that are required to run the code. This clearly communicates to that downstream users what additional materials they will need to run the script.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+source(&amp;quot;./R/script_containing_functions.R&amp;quot;)
+
+custom_function = function(input){
+  # ...code...
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;loading-data&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;5. &lt;strong&gt;Loading Data&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;It’s also important to load your data early on in the script, ensuring that it’s done in a way that clearly defines the location of your data file. This way, others can easily understand where the data comes from and how to adjust it if needed.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+data = read.csv(here(input_path, &amp;quot;file.csv&amp;quot;))
+internet_data = httr::GET(url_data_1)&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;case-study&#34; class=&#34;section level4&#34;&gt;
+&lt;h4&gt;Case Study&lt;/h4&gt;
+&lt;p&gt;In this section, we’ll explore the benefits of using a structured template by creating and analyzing a temporary directory of example R scripts.&lt;/p&gt;
+&lt;p&gt;The code below sets up a temporary directory and generates several example R scripts:&lt;/p&gt;
+&lt;p&gt;After creating the scripts, we can check what’s inside the directory:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;dev_example_2.R&amp;quot;    &amp;quot;dev_example_3.R&amp;quot;    &amp;quot;process_mtcars.R&amp;quot;  
+## [4] &amp;quot;script_example_1.R&amp;quot; &amp;quot;script_example_4.R&amp;quot; &amp;quot;temp_function_1.R&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, the file names are not very descriptive. Imagine receiving a large codebase with numerous files like this. It would be challenging to understand who wrote the scripts, what they do, or how they are connected.&lt;/p&gt;
+&lt;p&gt;Now, let’s examine one of the scripts in detail:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## #
+## # DESC: A script for visualizing results
+## #
+## # By: Bob Lee, bobby.lee@aol.com
+## #
+## # README: Generates plots for report
+## #-------- Auto saves to shared drive location
+## #
+## # *please use 80 character margins
+## #
+## #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 
+## .....code.....&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From the metadata, we can immediately understand the purpose of this script and who created it. The README section also provides valuable context, such as how the plots are automatically saved rather than being stored in a variable, preventing confusion for future users.&lt;/p&gt;
+&lt;p&gt;Next, let’s analyze all the files in the directory at once:&lt;/p&gt;
+&lt;div class=&#34;reactable html-widget html-fill-item&#34; id=&#34;htmlwidget-1&#34; style=&#34;width:auto;height:auto;&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;script&#34;:[&#34;dev_example_2.R&#34;,&#34;dev_example_3.R&#34;,&#34;process_mtcars.R&#34;,&#34;script_example_1.R&#34;,&#34;script_example_4.R&#34;,&#34;temp_function_1.R&#34;],&#34;type&#34;:[&#34;dev&#34;,&#34;dev&#34;,&#34;NULL&#34;,&#34;script&#34;,&#34;script&#34;,&#34;NULL&#34;],&#34;author&#34;:[&#34;Jane Smith, j.smith@yerhoo.com&#34;,&#34;Alice Johnson, a97@moomle.com&#34;,&#34;NULL&#34;,&#34;Bob Lee, bobby.lee@aol.com&#34;,&#34;John Doe, jd@Rmail.com&#34;,&#34;NULL&#34;],&#34;description&#34;:[&#34;A script for data cleaning&#34;,&#34;A helper function script&#34;,&#34;NULL&#34;,&#34;A script for visualizing results&#34;,&#34;A script to demonstrate metadata&#34;,&#34;NULL&#34;],&#34;details&#34;:[&#34;This script focuses on cleaning survey data                                                                             Perfroms hashing of PII features                                                                                        &#34;,&#34;Contains helper functions for analysis                                                                                  Sourced manually by other scripts                                                                                       &#34;,&#34;NULL&#34;,&#34;Generates plots for report                                                                                              Auto saves to shared drive location                                                                                     &#34;,&#34;Additional context for future users                                                                                     Some other text                                                                                                         &#34;,&#34;NULL&#34;]},&#34;columns&#34;:[{&#34;id&#34;:&#34;script&#34;,&#34;name&#34;:&#34;script&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;type&#34;,&#34;name&#34;:&#34;type&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;author&#34;,&#34;name&#34;:&#34;author&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;description&#34;,&#34;name&#34;:&#34;description&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;details&#34;,&#34;name&#34;:&#34;details&#34;,&#34;type&#34;:&#34;character&#34;}],&#34;dataKey&#34;:&#34;f747b908cb52b6911a6de44ed91b4104&#34;},&#34;children&#34;:[]},&#34;class&#34;:&#34;reactR_markup&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;p&gt;Key takeaways:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now view all the scripts and their associated metadata.&lt;br /&gt;
+&lt;/li&gt;
+&lt;li&gt;Scripts following the recommended template have clear metadata, while those without the template remain ambiguous, with missing author and description details.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note&lt;/em&gt;:
+I want to quickly highlight the benefits of using prefixes like &lt;code&gt;script_&lt;/code&gt; or &lt;code&gt;dev_&lt;/code&gt; in file names. These prefixes provide clarity regarding what the code does or at what stage of development it is.&lt;/p&gt;
+&lt;p&gt;The way I use these prefixes is as follows: every code file starts off as a &lt;strong&gt;dev&lt;/strong&gt; script. If I’m initially building something out, I save it with the &lt;code&gt;dev_&lt;/code&gt; prefix.&lt;/p&gt;
+&lt;p&gt;Once a script reaches a stage where it’s fairly formalized and unlikely to change, I save it with the &lt;code&gt;script_&lt;/code&gt; prefix - denoting that it is now “stable”.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+        </item>
+        <item>
         <title>5 Minute Tutorials: Fast Data Loading</title>
         <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</link>
         <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>

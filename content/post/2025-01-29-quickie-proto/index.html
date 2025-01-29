@@ -1,0 +1,116 @@
+---
+title: "5 Minute Tutorials: Using Protocol Buffers in R"
+author: 'Mike Gaunt'
+date: '2025-01-28'
+slug: quickie-protobuf
+categories: ["R", "Programming"]
+tags: ["protobuf", "GTFS", "5Min Tutorials"]
+description: "Quick tutorial on how to use Protocol Buffers in R with GTFS-realtime data."
+image: ~
+math: ~
+license: ~
+hidden: no
+comments: yes
+---
+
+
+
+<div id="quick-overview" class="section level1">
+<h1>Quick Overview</h1>
+<p>Hi hi!<br />
+This is a quick tutorial on using <strong>Protocol Buffers</strong> (protobufs) in R, particularly for working with <strong>GTFS-realtime</strong> data. If you’ve ever struggled to parse protobuf data, this guide will walk through the key steps to get you started.</p>
+<div id="what-are-protocol-buffers" class="section level2">
+<h2>What are Protocol Buffers?</h2>
+<p>Protocol Buffers (protobufs) are a language-neutral, platform-neutral extensible mechanism for serializing structured data. They are commonly used in real-time data applications, such as <strong>GTFS-realtime</strong>, because they are lightweight and efficient. Unlike JSON or XML, which store data in human-readable formats, protobufs store data in binary format, making them compact and fast to transmit.</p>
+<p>In R, we use the <strong>RProtoBuf</strong> package to read and process protobufs.</p>
+</div>
+</div>
+<div id="getting-started" class="section level1">
+<h1>Getting Started</h1>
+<div id="checking-available-protobuf-descriptors" class="section level3">
+<h3>Checking Available Protobuf Descriptors</h3>
+<p>A <strong>descriptor pool</strong> is a collection of message types and enums available in a protobuf schema. In R, we can inspect available descriptors with:</p>
+<pre class="r"><code>ls(&quot;RProtoBuf:DescriptorPool&quot;)</code></pre>
+<pre><code>## [1] &quot;rexp.CMPLX&quot;                   &quot;rexp.REXP&quot;                   
+## [3] &quot;rexp.STRING&quot;                  &quot;rprotobuf.HelloWorldRequest&quot; 
+## [5] &quot;rprotobuf.HelloWorldResponse&quot; &quot;tutorial.AddressBook&quot;        
+## [7] &quot;tutorial.Person&quot;</code></pre>
+<p>Descriptors define the structure of the data. Think of them like a schema for a database or the column definitions in a data frame.</p>
+</div>
+<div id="downloading-and-reading-the-gtfs-realtime-protobuf" class="section level3">
+<h3>Downloading and Reading the GTFS-realtime Protobuf</h3>
+<p>GTFS-realtime data uses a predefined protobuf schema. First, download the <code>.proto</code> definition file, and then load the protobuf schema into R:</p>
+<pre class="r"><code>proto_file = &quot;https://gtfs.org/documentation/realtime/gtfs-realtime.proto&quot;
+download.file(proto_file, destfile = &quot;gtfs-realtime.proto&quot;)
+readProtoFiles(&quot;gtfs-realtime.proto&quot;)</code></pre>
+<pre class="r"><code>ls(&quot;RProtoBuf:DescriptorPool&quot;)</code></pre>
+<pre><code>##  [1] &quot;rexp.CMPLX&quot;                         &quot;rexp.REXP&quot;                         
+##  [3] &quot;rexp.STRING&quot;                        &quot;rprotobuf.HelloWorldRequest&quot;       
+##  [5] &quot;rprotobuf.HelloWorldResponse&quot;       &quot;transit_realtime.Alert&quot;            
+##  [7] &quot;transit_realtime.EntitySelector&quot;    &quot;transit_realtime.FeedEntity&quot;       
+##  [9] &quot;transit_realtime.FeedHeader&quot;        &quot;transit_realtime.FeedMessage&quot;      
+## [11] &quot;transit_realtime.Position&quot;          &quot;transit_realtime.ReplacementStop&quot;  
+## [13] &quot;transit_realtime.Shape&quot;             &quot;transit_realtime.Stop&quot;             
+## [15] &quot;transit_realtime.StopSelector&quot;      &quot;transit_realtime.TimeRange&quot;        
+## [17] &quot;transit_realtime.TranslatedImage&quot;   &quot;transit_realtime.TranslatedString&quot; 
+## [19] &quot;transit_realtime.TripDescriptor&quot;    &quot;transit_realtime.TripModifications&quot;
+## [21] &quot;transit_realtime.TripUpdate&quot;        &quot;transit_realtime.VehicleDescriptor&quot;
+## [23] &quot;transit_realtime.VehiclePosition&quot;   &quot;tutorial.AddressBook&quot;              
+## [25] &quot;tutorial.Person&quot;</code></pre>
+<p>This lets us see the available message types defined in the GTFS-realtime schema.</p>
+</div>
+<div id="understanding-a-protobuf-descriptor" class="section level3">
+<h3>Understanding a Protobuf Descriptor</h3>
+<p>A <strong>descriptor</strong> is like a class definition for a protobuf message. Here’s how we inspect one:</p>
+<pre class="r"><code>descriptor = RProtoBuf::P(&quot;transit_realtime.FeedMessage&quot;)
+descriptor</code></pre>
+<pre><code>## descriptor for type &#39;transit_realtime.FeedMessage&#39;</code></pre>
+<p>Descriptors define the message structure, including nested message types. In R, they may look similar to functions or methods, but they represent structured data rather than executable code.</p>
+</div>
+</div>
+<div id="loading-a-gtfs-realtime-feed" class="section level1">
+<h1>Loading a GTFS-realtime Feed</h1>
+<p>GTFS-realtime feeds are updated frequently and are stored in <strong>binary format</strong> for efficiency. We need to download and parse them properly.</p>
+<p>First, retrieve the binary protobuf feed:</p>
+<pre class="r"><code>feed_url &lt;- &quot;http://s3.amazonaws.com/commtrans-realtime-prod/tripupdates.pb&quot;
+resp = httr::GET(feed_url)
+feed_data = resp %&gt;% content(&quot;raw&quot;)</code></pre>
+<p>Now, parse the binary data using the descriptor:</p>
+<pre class="r"><code>gtfs_feed = P(&quot;transit_realtime.FeedMessage&quot;)$read(feed_data)</code></pre>
+<p>The <code>$read()</code> function is similar to a method in Python—it’s how we deserialize binary data into a structured format.</p>
+<div id="converting-the-feed-to-json" class="section level3">
+<h3>Converting the Feed to JSON</h3>
+<p>To work with the data more easily, convert it to JSON:</p>
+<pre class="r"><code>gtfs_feed_json = gtfs_feed$toJSON()
+gtfs_feed_json = jsonlite::fromJSON(gtfs_feed_json, simplifyVector = FALSE)</code></pre>
+<p>Now, let’s extract and inspect the entities in the feed:</p>
+<pre class="r"><code>gtfs_feed_json %&gt;% 
+  .[[&#39;entity&#39;]] %&gt;% 
+  enframe() %&gt;% 
+  unnest_wider(value) %&gt;% 
+  unnest_wider(tripUpdate)</code></pre>
+<pre><code>## # A tibble: 185 × 6
+##     name id                   trip         stopTimeUpdate vehicle      timestamp
+##    &lt;int&gt; &lt;chr&gt;                &lt;list&gt;       &lt;list&gt;         &lt;list&gt;       &lt;chr&gt;    
+##  1     1 1738176218_12867957… &lt;named list&gt; &lt;list [11]&gt;    &lt;named list&gt; 17381761…
+##  2     2 1738176218_12867959… &lt;named list&gt; &lt;list [32]&gt;    &lt;NULL&gt;       &lt;NA&gt;     
+##  3     3 1738176218_12867985… &lt;named list&gt; &lt;list [34]&gt;    &lt;NULL&gt;       &lt;NA&gt;     
+##  4     4 1738176218_12868024… &lt;named list&gt; &lt;list [32]&gt;    &lt;named list&gt; 17381761…
+##  5     5 1738176218_12868028… &lt;named list&gt; &lt;list [27]&gt;    &lt;named list&gt; 17381761…
+##  6     6 1738176218_12868029… &lt;named list&gt; &lt;list [34]&gt;    &lt;NULL&gt;       &lt;NA&gt;     
+##  7     7 1738176218_12867622… &lt;named list&gt; &lt;list [26]&gt;    &lt;NULL&gt;       &lt;NA&gt;     
+##  8     8 1738176218_12867623… &lt;named list&gt; &lt;list [2]&gt;     &lt;NULL&gt;       &lt;NA&gt;     
+##  9     9 1738176218_12867624… &lt;named list&gt; &lt;list [26]&gt;    &lt;named list&gt; 17381761…
+## 10    10 1738176218_12867664… &lt;named list&gt; &lt;list [27]&gt;    &lt;named list&gt; 17381761…
+## # ℹ 175 more rows</code></pre>
+</div>
+</div>
+<div id="final-thoughts" class="section level1">
+<h1>Final Thoughts</h1>
+<p>This tutorial showed how to:
+- Load and inspect GTFS-realtime protobuf schemas
+- Download and parse GTFS-realtime data
+- Convert protobufs to JSON for easier manipulation</p>
+<p>Protobufs are an efficient way to handle structured real-time data, and <strong>RProtoBuf</strong> makes it possible to work with them in R.</p>
+<p>Thanks for reading, and happy coding!</p>
+</div>

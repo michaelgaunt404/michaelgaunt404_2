@@ -1,0 +1,310 @@
+---
+title: "Organized Code"
+author: "Mike Gaunt"
+date: "2024-10-02"
+output:
+  html_document:
+    df_print: paged
+categories:
+- R
+- Scripting
+tags:
+- Code Organization
+- vectorization
+- programming
+description: Clear, well organized code using code templates.
+image: null
+math: null
+license: null
+hidden: no
+comments: yes
+slug: "clean-structured-code"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+```
+
+```{r}
+quite = gauntlet::package_load(c("tidyverse", "gauntlet", "here"))
+```
+
+## Introduction
+
+This vignette explains why using a consistent script structure and metadata format is essential for collaboration, efficiency, and reproducibility in R projects. By following a standardized template, you ensure that anyone using your scripts can quickly understand what the script does, who created it, and any specific requirements needed to run it.
+
+By the end of this vignette, you'll be familiar with a script template that helps organize code effectively and facilitates rapid development.
+
+---
+
+### Why Use a Standard Template?
+
+Having a standard template ensures:    
+    
+- **Consistency**: Scripts follow the same structure, making it easier for anyone to understand and maintain them.     
+- **Reusability**: Repeated sections like library loading or path setup can be quickly modified for different environments or projects.     
+- **Error Reduction**: Code dependencies (such as library loading or data sourcing) are defined in one place, reducing errors due to missing libraries or data.     
+- **Collaboration**: Team members can easily navigate scripts without needing deep explanations.
+
+---
+
+### The Script Template
+
+Here is the recommended template for your R scripts. 
+
+There is a small section at the top that can be populated with specific metadata - script description, author, and additional notes (ReadMe). This information is crucial for anyone coming back to the script later, especially when script names might not be descriptive enough.
+
+This section is then followed by clearly defined sections for loading libraries, paths, data, and helper functions.
+
+```{r eval=FALSE, echo=TRUE}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: This script [[insert brief readme here]]
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: [[insert brief readme here]]
+#-------- [[insert brief readme here]]
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+library(tidyverse)
+library(gauntlet)
+
+#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+#area to upload data with and to perform initial munging
+#please add test data here so that others may use/unit test these scripts
+
+
+#main header====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 1==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 2==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#script end=====================================================================
+```
+
+---
+
+### Walkthrough of the Template
+
+#### 1. **Metadata Section**
+
+At the top of every script, include a commented-out section with three elements:
+
+- **DESC**: Briefly explain what the script does.   
+- **By**: The name of the person who created the script.   
+- **README**: Any additional information for future users, such as requirements, assumptions, or related files.   
+
+Here’s what the metadata block should look like:
+
+```{r eval=FALSE, echo=TRUE}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: Script pre-processes Austin housing data for spatial modeling
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: makes a number of features based on initial feature space
+#-------- converts to spatial object for mapping and GIS purposes
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+#### 2. **Library Setup**
+
+After the metadata section, the first executable code should load all the required libraries. 
+
+Having libraries declared in one place ensures that all dependencies are loaded at the beginning, preventing errors due to missing packages later in the script.
+
+```{r eval=FALSE, echo=TRUE}
+#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+library(tidyverse)
+library(glue)
+```
+
+#### 3. **Path Setup**
+
+Next, define the paths for any input data or outputs. Keeping paths together makes it easier to adapt the script to different file structures without searching through the entire code.
+
+```{r eval=FALSE, echo=TRUE}
+#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_path = "path/to/data"
+url_data_1 = 'www.somedata1.com'
+output_path = "path/to/output"
+```
+
+#### 4. **Source/Define Functions**
+
+Define all custom functions and source all scripts that are required to  run the code. This clearly communicates to that downstream users what additional materials they will need to run the script.
+
+```{r eval=FALSE, echo=TRUE}
+#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+source("./R/script_containing_functions.R")
+
+custom_function = function(input){
+  # ...code...
+}
+```
+
+#### 5. **Loading Data**
+
+It's also important to load your data early on in the script, ensuring that it's done in a way that clearly defines the location of your data file. This way, others can easily understand where the data comes from and how to adjust it if needed.
+
+```{r eval=FALSE, echo=TRUE}
+#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+data = read.csv(here(input_path, "file.csv"))
+internet_data = httr::GET(url_data_1)
+```
+
+---
+
+#### Case Study
+
+In this section, we’ll explore the benefits of using a structured template by creating and analyzing a temporary directory of example R scripts.
+
+The code below sets up a temporary directory and generates several example R scripts: 
+
+```{r echo=FALSE}
+# Create a temporary directory for the example scripts
+temp_dir <- tempdir(check = TRUE)
+temp_sub_dir <- file.path(temp_dir, "R")
+dir.create(temp_sub_dir)
+
+# Example script content 1
+temp_script_long <- "process_mtcars = function(){
+  mtcars %>%
+    mutate(
+      var_1 = quantile(disp, probs = .6),
+      var_2 = str_glue('{disp} {hp}'),
+      var_3 = case_when(hp > median(hp) ~ 'Big', TRUE ~ 'Small')
+    ) %>% 
+    select(mpg, starts_with('var_')) %>% 
+    arrange(mpg)
+}"
+
+# Example script content 2 with too many functions
+temp_script_too_many_functions <- '
+temp_function_1 = function(){
+  print("Hello")
+}
+
+temp_function_2 = function(){
+  print("I should be in my own script!")
+}
+'
+
+# Write the example scripts to the temp directory
+temp_script_long_path <- file.path(temp_sub_dir, "process_mtcars.R")
+writeLines(temp_script_long, temp_script_long_path)
+
+temp_script_too_many_functions_path <- file.path(temp_sub_dir, "temp_function_1.R")
+writeLines(temp_script_too_many_functions, temp_script_too_many_functions_path)
+
+# Add metadata for more example files
+metadata_example <- function(script_name, author, description, readme){
+  content <- glue::glue(
+"#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: {description}
+#
+# By: {author}
+#
+# README: {readme[1]}
+#-------- {readme[2]}
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.....code.....
+"
+  )
+  file_path <- file.path(temp_sub_dir, script_name)
+  writeLines(content, file_path)
+}
+
+# Create additional example scripts with metadata
+metadata_example("script_example_4.R", "John Doe, jd@Rmail.com", "A script to demonstrate metadata", 
+                 c("Additional context for future users", "Some other text"))
+
+metadata_example("dev_example_2.R", "Jane Smith, j.smith@yerhoo.com", "A script for data cleaning", 
+                 c("This script focuses on cleaning survey data", "Perfroms hashing of PII features"))
+
+metadata_example("dev_example_3.R", "Alice Johnson, a97@moomle.com", "A helper function script", 
+                 c("Contains helper functions for analysis", "Sourced manually by other scripts"))
+
+metadata_example("script_example_1.R", "Bob Lee, bobby.lee@aol.com", "A script for visualizing results", 
+                 c("Generates plots for report", "Auto saves to shared drive location"))
+```
+
+After creating the scripts, we can check what’s inside the directory:
+
+```{r}
+list.files(temp_sub_dir, full.names = T) %>% 
+  basename()
+```
+
+As you can see, the file names are not very descriptive. Imagine receiving a large codebase with numerous files like this. It would be challenging to understand who wrote the scripts, what they do, or how they are connected.
+
+Now, let’s examine one of the scripts in detail:
+
+```{r}
+readLines(paste0(temp_sub_dir, "/script_example_1.R")) %>% 
+  paste0(collapse = "\n") %>% 
+  cat()
+```
+
+From the metadata, we can immediately understand the purpose of this script and who created it. The README section also provides valuable context, such as how the plots are automatically saved rather than being stored in a variable, preventing confusion for future users.
+
+Next, let’s analyze all the files in the directory at once:
+
+```{r error=FALSE, message=FALSE, warning=FALSE}
+detail_R_scripts_q = purrr::quietly(detail_R_scripts)
+
+table = detail_R_scripts_q(temp_sub_dir) 
+
+table$result %>% 
+  mutate(across(everything(), replace_na, "NULL")) %>% 
+  arrange(script) %>% 
+  reactable::reactable()
+```
+
+Key takeaways:     
+
+- We can now view all the scripts and their associated metadata.    
+- Scripts following the recommended template have clear metadata, while those without the template remain ambiguous, with missing author and description details.
+
+*Note*: 
+I want to quickly highlight the benefits of using prefixes like `script_` or `dev_` in file names. These prefixes provide clarity regarding what the code does or at what stage of development it is. 
+
+The way I use these prefixes is as follows: every code file starts off as a **dev** script. If I’m initially building something out, I save it with the `dev_` prefix.
+
+Once a script reaches a stage where it's fairly formalized and unlikely to change, I save it with the `script_` prefix - denoting that it is now "stable".
+

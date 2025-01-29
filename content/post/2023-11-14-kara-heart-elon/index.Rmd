@@ -1,5 +1,5 @@
 ---
-title: Kara `r emo::ji("heart")` Elon
+title: Kara `r emojifont::emoji("heart")` Elon
 author: 'Mike Gaunt'
 date: '2023-11-14'
 slug: kara-heart-elon
@@ -104,7 +104,7 @@ bscols(
        ))
 ```
 
-Specifically Elon and Elon affiliated stuff.  `r emo::ji("rocket")` `r emo::ji("rocket")` `r emo::ji("rocket")`
+Specifically Elon and Elon affiliated stuff.  `r rep(emojifont::emoji("rocket"), 3)`
 
 ```{r echo=FALSE}
 person_counts = c("Elon", "Twitter", "Elon|Twitter", "SpaceX", "Tesla") %>% 
