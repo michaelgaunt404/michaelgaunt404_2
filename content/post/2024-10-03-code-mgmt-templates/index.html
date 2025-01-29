@@ -1,0 +1,207 @@
+---
+title: "Organized Code"
+author: "Mike Gaunt"
+date: "2024-10-02"
+output:
+  html_document:
+    df_print: paged
+categories:
+- R
+- Programming
+tags:
+- purrr
+- vectorization
+- programming
+description: Clear, well organized code using code templates.
+image: null
+math: null
+license: null
+hidden: no
+comments: yes
+slug: "clean-structured-code"
+---
+
+<script src="{{< blogdown/postref >}}index_files/core-js/shim.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/react/react.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/react/react-dom.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/reactwidget/react-tools.umd.cjs"></script>
+<link href="{{< blogdown/postref >}}index_files/htmltools-fill/fill.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<link href="{{< blogdown/postref >}}index_files/reactable/reactable.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/reactable-binding/reactable.js"></script>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This vignette explains why using a consistent script structure and metadata format is essential for collaboration, efficiency, and reproducibility in R projects. By following a standardized template, you ensure that anyone using your scripts can quickly understand what the script does, who created it, and any specific requirements needed to run it.</p>
+<p>By the end of this vignette, you’ll be familiar with a script template that helps organize code effectively and facilitates rapid development.</p>
+<hr />
+<div id="why-use-a-standard-template" class="section level3">
+<h3>Why Use a Standard Template?</h3>
+<p>Having a standard template ensures:</p>
+<ul>
+<li><strong>Consistency</strong>: Scripts follow the same structure, making it easier for anyone to understand and maintain them.<br />
+</li>
+<li><strong>Reusability</strong>: Repeated sections like library loading or path setup can be quickly modified for different environments or projects.<br />
+</li>
+<li><strong>Error Reduction</strong>: Code dependencies (such as library loading or data sourcing) are defined in one place, reducing errors due to missing libraries or data.<br />
+</li>
+<li><strong>Collaboration</strong>: Team members can easily navigate scripts without needing deep explanations.</li>
+</ul>
+<hr />
+</div>
+<div id="the-script-template" class="section level3">
+<h3>The Script Template</h3>
+<p>Here is the recommended template for your R scripts.</p>
+<p>There is a small section at the top that can be populated with specific metadata - script description, author, and additional notes (ReadMe). This information is crucial for anyone coming back to the script later, especially when script names might not be descriptive enough.</p>
+<p>This section is then followed by clearly defined sections for loading libraries, paths, data, and helper functions.</p>
+<pre class="r"><code>#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: This script [[insert brief readme here]]
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: [[insert brief readme here]]
+#-------- [[insert brief readme here]]
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+library(tidyverse)
+library(gauntlet)
+
+#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+#area to upload data with and to perform initial munging
+#please add test data here so that others may use/unit test these scripts
+
+
+#main header====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 1==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 2==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#script end=====================================================================</code></pre>
+<hr />
+</div>
+<div id="walkthrough-of-the-template" class="section level3">
+<h3>Walkthrough of the Template</h3>
+<div id="metadata-section" class="section level4">
+<h4>1. <strong>Metadata Section</strong></h4>
+<p>At the top of every script, include a commented-out section with three elements:</p>
+<ul>
+<li><strong>DESC</strong>: Briefly explain what the script does.<br />
+</li>
+<li><strong>By</strong>: The name of the person who created the script.<br />
+</li>
+<li><strong>README</strong>: Any additional information for future users, such as requirements, assumptions, or related files.</li>
+</ul>
+<p>Here’s what the metadata block should look like:</p>
+<pre class="r"><code>#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: Script pre-processes Austin housing data for spatial modeling
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: makes a number of features based on initial feature space
+#-------- converts to spatial object for mapping and GIS purposes
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</code></pre>
+</div>
+<div id="library-setup" class="section level4">
+<h4>2. <strong>Library Setup</strong></h4>
+<p>After the metadata section, the first executable code should load all the required libraries.</p>
+<p>Having libraries declared in one place ensures that all dependencies are loaded at the beginning, preventing errors due to missing packages later in the script.</p>
+<pre class="r"><code>#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+library(tidyverse)
+library(glue)</code></pre>
+</div>
+<div id="path-setup" class="section level4">
+<h4>3. <strong>Path Setup</strong></h4>
+<p>Next, define the paths for any input data or outputs. Keeping paths together makes it easier to adapt the script to different file structures without searching through the entire code.</p>
+<pre class="r"><code>#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_path = &quot;path/to/data&quot;
+url_data_1 = &#39;www.somedata1.com&#39;
+output_path = &quot;path/to/output&quot;</code></pre>
+</div>
+<div id="sourcedefine-functions" class="section level4">
+<h4>4. <strong>Source/Define Functions</strong></h4>
+<p>Define all custom functions and source all scripts that are required to run the code. This clearly communicates to that downstream users what additional materials they will need to run the script.</p>
+<pre class="r"><code>#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+source(&quot;./R/script_containing_functions.R&quot;)
+
+custom_function = function(input){
+  # ...code...
+}</code></pre>
+</div>
+<div id="loading-data" class="section level4">
+<h4>5. <strong>Loading Data</strong></h4>
+<p>It’s also important to load your data early on in the script, ensuring that it’s done in a way that clearly defines the location of your data file. This way, others can easily understand where the data comes from and how to adjust it if needed.</p>
+<pre class="r"><code>#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+data = read.csv(here(input_path, &quot;file.csv&quot;))
+internet_data = httr::GET(url_data_1)</code></pre>
+<hr />
+</div>
+<div id="case-study" class="section level4">
+<h4>Case Study</h4>
+<p>In this section, we’ll explore the benefits of using a structured template by creating and analyzing a temporary directory of example R scripts.</p>
+<p>The code below sets up a temporary directory and generates several example R scripts:</p>
+<p>After creating the scripts, we can check what’s inside the directory:</p>
+<pre><code>## [1] &quot;dev_example_2.R&quot;    &quot;dev_example_3.R&quot;    &quot;process_mtcars.R&quot;  
+## [4] &quot;script_example_1.R&quot; &quot;script_example_4.R&quot; &quot;temp_function_1.R&quot;</code></pre>
+<p>As you can see, the file names are not very descriptive. Imagine receiving a large codebase with numerous files like this. It would be challenging to understand who wrote the scripts, what they do, or how they are connected.</p>
+<p>Now, let’s examine one of the scripts in detail:</p>
+<pre><code>## #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## #
+## # DESC: A script for visualizing results
+## #
+## # By: Bob Lee, bobby.lee@aol.com
+## #
+## # README: Generates plots for report
+## #-------- Auto saves to shared drive location
+## #
+## # *please use 80 character margins
+## #
+## #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 
+## .....code.....</code></pre>
+<p>From the metadata, we can immediately understand the purpose of this script and who created it. The README section also provides valuable context, such as how the plots are automatically saved rather than being stored in a variable, preventing confusion for future users.</p>
+<p>Next, let’s analyze all the files in the directory at once:</p>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-1" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"script":["dev_example_2.R","dev_example_3.R","process_mtcars.R","script_example_1.R","script_example_4.R","temp_function_1.R"],"type":["dev","dev","NULL","script","script","NULL"],"author":["Jane Smith, j.smith@yerhoo.com","Alice Johnson, a97@moomle.com","NULL","Bob Lee, bobby.lee@aol.com","John Doe, jd@Rmail.com","NULL"],"description":["A script for data cleaning","A helper function script","NULL","A script for visualizing results","A script to demonstrate metadata","NULL"],"details":["This script focuses on cleaning survey data                                                                             Perfroms hashing of PII features                                                                                        ","Contains helper functions for analysis                                                                                  Sourced manually by other scripts                                                                                       ","NULL","Generates plots for report                                                                                              Auto saves to shared drive location                                                                                     ","Additional context for future users                                                                                     Some other text                                                                                                         ","NULL"]},"columns":[{"id":"script","name":"script","type":"character"},{"id":"type","name":"type","type":"character"},{"id":"author","name":"author","type":"character"},{"id":"description","name":"description","type":"character"},{"id":"details","name":"details","type":"character"}],"dataKey":"f747b908cb52b6911a6de44ed91b4104"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>Key takeaways:</p>
+<ul>
+<li>We can now view all the scripts and their associated metadata.<br />
+</li>
+<li>Scripts following the recommended template have clear metadata, while those without the template remain ambiguous, with missing author and description details.</li>
+</ul>
+<p><em>Note</em>:
+I want to quickly highlight the benefits of using prefixes like <code>script_</code> or <code>dev_</code> in file names. These prefixes provide clarity regarding what the code does or at what stage of development it is.</p>
+<p>The way I use these prefixes is as follows: every code file starts off as a <strong>dev</strong> script. If I’m initially building something out, I save it with the <code>dev_</code> prefix.</p>
+<p>Once a script reaches a stage where it’s fairly formalized and unlikely to change, I save it with the <code>script_</code> prefix - denoting that it is now “stable”.</p>
+</div>
+</div>
+</div>

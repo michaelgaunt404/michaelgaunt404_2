@@ -5,17 +5,7 @@
 # By: mike gaunt, michael.gaunt@wsp.com
 #
 # README: not well organized - pretty loose code
-#-------- should be incoprorated into ablog at some point
-#
-# *please use 80 character margins
-#
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#sec: inputs====================================================================
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-library(httr)
-library(jsonlite)
-library(tidyverse)
 
 #sec: inputs====================================================================
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

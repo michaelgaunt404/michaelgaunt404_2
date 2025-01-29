@@ -1,0 +1,299 @@
+---
+title: measuring-power
+author: ''
+date: '2024-11-18'
+slug: measuring-power
+categories: []
+tags: []
+description: null
+image: null
+math: null
+license: null
+hidden: no
+comments: yes
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+---
+title: "Measuring Power in Training: Establishing a Baseline"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+full_path = here::here("content/post/2024-11-18-measuring-power")
+source(
+  here::here(full_path, "process_peak_force.R")
+)
+
+
+data = here::here(full_path, "peakload_data_left_right_18_11_2024.csv") %>%
+  read.csv() %>% 
+  filter(tag == "test_halfcrimp_power")
+
+```
+
+
+```{r, echo=F}
+# Example data filtering and preparation
+process_peak_force()
+df = data %>%
+    filter(str_detect(tag, "power")) %>%
+    mutate(
+      base_weight = gsub(";.*", "\\1", comment) %>% parse_number(),
+      session = gsub(".*(session_)", "\\1", comment)) %>% 
+  mutate(across(contains("max.weight"), ~round(.x/base_weight, 2))) %>% 
+  pivot_longer(cols = contains("max.weight")
+               ,values_to = "accel_g")
+
+# Fit a logarithmic model
+model = lm(log(accel_g) ~ log10(base_weight), data = df)
+
+# Create new data for predictions
+new_data = data.frame(
+  base_weight = seq(15, 150, 5))
+
+# Generate predictions and prediction intervals
+au =broom:: augment(model, newdata = new_data, interval = "prediction") %>% 
+  mutate(across(c(.fitted:.upper), exp))
+
+# Plot the data and model
+df %>% 
+  ggplot() + 
+  geom_point(aes(base_weight, accel_g)) +
+  geom_line(data = au, aes(base_weight, y = .fitted)) + 
+  geom_ribbon(data = au, aes(base_weight, ymin = .lower, ymax = .upper), alpha = 0.3) +
+  geom_hline(yintercept = 1) + 
+  labs(x = "Acgtual Weight Lifted (lbF)", y = "Force Multiplier") + 
+  coord_cartesian(x = c(20, 130))
+```
+
+# Introduction
+
+Being a boulder bro, I've always focused on being as strong as I can be and have seen it as the one true path to sending nirvana. I'm the guy Sharma screaming on plastic and dyno-ing everything.
+
+This mindset has only gotten worst, as I've been able to gameify my hangboarding session by the use of a TIndeq and introducing the 'deadlifting' method into my handboard session. 
+
+Despite being able to rip 170% body weight in a halftime, I've not been able to some of my big outdoor projects. Seems my issue is on power/contact strength (espially on small 'lil outdoor holds) and not strength. 
+
+Great.... so I now know what the problem is, but how do I go about fixing it and just as importantly, _how do i go about measruing ability and progress_?
+
+This blog post explains the latter, my process in measuring power. I devloped this method in  from a first principabs approach and with the intent of making it as user friednly and easily adoptable. 
+
+
+
+# Principles of Power
+
+Power so what is it and how is it different from stength?
+
+Effectively, power is the rate at which strength can be applied, or for those more math literate:
+
+$$
+P = F \cdot v
+$$
+
+Where: - $P$: Power - $F$: Force applied - $v$: Velocity of movement
+
+A lot of "power" training is facilitated by use of instrunments that measure velcotiy, this type of triaing is called Velocity based training or VBT for short. 
+
+And long story short, i have no wau to directly measure the velocity in a tradtiional context or in a climbing context... but i do have a work around ].
+
+Tindeqs (which i have) measure force, if you slowly lift a 40 LBF wieght it will measure 40 Lbf. 
+
+Now for some physics, fundemenatally: 
+
+Force equals mass times acceleration 
+
+if we acceelerate a mass slowly, just overcoming the acceleration due to gravtiy we will have a overcome (lift) the force of a weight that is more o rless the weight printed on the weight.
+
+HOWEVER, if we lift the a weight (or mass) really, really quickly, we will actually lify physicallhy heavier weight....
+
+Example here::
+
+pls out example of a 
+45 lbf weight with accerleation of 9.81 m/s2
+and then the mass of that same object being moved at 13.5m/s2 fled compare teh differences in actaul force feld
+
+and then say something about 13.5m/s2 being some multiple of gravity G
+
+This acceleration force
+
+
+Since velocity is the change in position over time, and acceleration
+($a$) is the rate of change of velocity, we can indirectly measure
+velocity by analyzing the force required to accelerate a mass over a
+short duration.
+
+This principle forms the foundation for training power: the ability to
+apply force quickly across a variety of weights.
+
+Unfortunately, there is no free lunch - heavier weights are harder to move than lighter ones (duh.) and in turn, it takes more force to move a given weight faster. 
+
+This relationship is captured in the **force-velocity curve**, which highlights the trade-off between force and velocity during movement.
+
+Why is this important? Contact strength...
+
+Imagine you're protecting a boulder problem. 
+
+The crux is a throw to tenuous crimp where you are forced to cut feet. 
+
+You can dangle on the crimp all day but when you actually are foced to hop and the wall and pefrom the movement, you just can't latch it. 
+
+In either case your fingers must apply a certain amount of wegith to the hold to keep you off the ground.
+
+When you grab the hold and lift your body off the ground, you pefrom this action slowly over a long time window, thus the 
+
+In the instance of the throw - there is a base amount of force you need to apply to the hold but over a very short amount of time (compensating for )
+
+# Methodology
+
+To estimate power without direct velocity measurements: 1. **Force
+Measurement**: I measured the maximum force I could generate while
+lifting a known weight as fast as possible using consistent grip
+positions. 2. **Acceleration Calculation**: I reported acceleration in
+terms of **total G's**, calculated as $a = F_{peak} / F_{weight}$, where
+$F_{peak}$ is the peak measured force and $F_{weight}$ is the base
+weight. 3. **Force-Velocity Relationship**: I plotted force and
+estimated acceleration to create a force multiplier curve, showing how
+lifting effort changes with mass.
+
+### Example Calculation
+
+To better understand this process, let’s break down an example:
+
+-   **Known Mass (Weight)**: 80 lbf
+-   **Measured Peak Force**: 130 lbf
+-   **Acceleration Calculation**:
+
+We calculate the total acceleration in terms of G's (multiples of gravities) as:
+
+$$
+a_{g} = \frac{F_{peak}}{F_{weight}}
+$$
+
+Where: - $F_{peak} = 130 \, \text{lbf}$ -
+$F_{weight} = 80 \, \text{lbf}$
+
+Substitute the values:
+
+$$
+a_{g} = \frac{130}{80} = 1.63 \, G
+$$
+This means the total acceleration applied to the base weight is **1.63
+G's**.
+
+# Data and Analysis
+
+Here’s how I implemented this analysis in R. The code filters relevant
+data, calculates the base weight, and fits a logarithmic model to
+explore the relationship between weight and acceleration.
+
+```{r, echo=TRUE}
+# Example data filtering and preparation
+df = temp_data %>%
+    filter(str_detect(tag, "power")) %>%
+    mutate(
+      base_weight = gsub(";.*", "\\1", comment) %>% parse_number(),
+      session = gsub(".*(session_)", "\\1", comment)
+    )
+
+# Fit a logarithmic model
+model = lm(log(accel_g) ~ log10(base_weight), data = df)
+
+# Create new data for predictions
+new_data = data.frame(
+  base_weight = seq(15, 150, 5)
+)
+
+# Generate predictions and prediction intervals
+au = augment(model, newdata = new_data, interval = "prediction") %>% 
+  mutate(across(c(.fitted:.upper), exp))
+
+# Plot the data and model
+df %>% 
+  ggplot() + 
+  geom_point(aes(base_weight, accel_g)) +
+  geom_line(data = au, aes(base_weight, y = .fitted)) + 
+  geom_ribbon(data = au, aes(base_weight, ymin = .lower, ymax = .upper), alpha = 0.3) +
+  geom_hline(yintercept = 1) + 
+  labs(x = "Weight Lifted (lbF)", y = "Force Multiplier") + 
+  coord_cartesian(x = c(20, 130))
+```
+
+# Tracking Progress
+
+The key reason for plotting and modeling this data is to establish a
+**baseline** for power across multiple weights. This baseline enables me
+to: 1. Identify my current ability to apply force at various weights. 2.
+Track changes in power over time.
+
+By training power, I hope to shift this curve upwards—indicating
+improvements in my ability to apply more force in shorter periods. The
+improvements may occur uniformly across all weights or be more
+pronounced at specific intervals. Either way, this approach gives me a
+measurable way to assess progress.
+
+# Conclusion
+
+This process highlights the importance of establishing a baseline for
+any targeted training program. By visualizing and modeling the
+force-velocity relationship, I have a clear starting point to monitor
+how training affects my power output.
+
+Ultimately, the goal is not just to collect data but to use it as a
+foundation for **meaningful improvement**. Over time, I’ll revisit this
+curve to measure the impact of my training efforts.
+
+
+# Execution (In Practice)
+
+So what was my process?
+
+I used my **Tindeq** to establish my power output (in G's) across a range of different weights.
+
+Again, by lifting it was fast as possible while maintiang good grip form, I could measure  maximum force I could apply during each lift. 
+
+Here’s how I conducted this process:
+
+### Steps for Measuring Power
+1. **Setup**:
+   - Over several sessions, I selected a random assortment of weights ranging from 25 to 130 lbs.
+   - Using a **half-crimp grip**, I connected the Tindeq to the weight and ensured it was secure.
+
+2. **Grip and Position**:
+   - I used a half-crimp grip for consistency, focusing on preventing my fingers from uncurling during the lift. If my fingers uncurl, it:
+     - Changes the grip position, affecting the measurement.
+     - Results in inaccurate force data, as my body’s movement compensates unnaturally.
+   - I positioned myself in a **half-squat stance**, with the weight lifted from a low position close to the floor upwards.
+
+3. **Measuring Base Weight**:
+   - Before each lift, I slowly raised the weight to ensure I had an accurate reading of its true weight. 
+   - This was recorded as the **base weight**.
+
+4. **Peak Force Measurement**:
+   - For each lift, I explosively lifted the weight upwards as quickly as possible while maintaining consistent grip and form. 
+   - The Tindeq captured the **peak force** during the lift.
+   - I performed this process for both my left and right hands individually, recording data for each.
+
+5. **Data Export**:
+   - After each session, I exported the data from the Tindeq app, including base weight and peak force measurements.
+
+### Why Modeling Matters
+Once I collected this data, I plotted it to visualize the relationship between base weight and acceleration (expressed in G's as \( \text{peak force} / \text{base weight} \)). To analyze this trend, I fit a **logarithmic model** to the data.
+
+The model helps me:
+1. **Understand the Baseline**:
+   - It shows how my acceleration diminishes as weight increases, which is expected based on the physics of force and mass.
+2. **Track Progress**:
+   - By re-measuring in the future, I can see if the curve shifts upwards, indicating improved ability to apply force across all weights or specific parts of the curve.
+
+For readers interested in the technical implementation, here’s the R code I used to fit the model and generate predictions:
+
+
+
+

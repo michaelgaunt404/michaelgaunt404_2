@@ -7,9 +7,9 @@ output:
     df_print: paged
 categories:
 - R
-- Programming
+- Scripting
 tags:
-- purrr
+- Code Organization
 - vectorization
 - programming
 description: Clear, well organized code using code templates.
@@ -21,12 +21,13 @@ comments: yes
 slug: "clean-structured-code"
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F, warning = F, message = F)
 ```
 
 ```{r}
-quite = gauntlet::package_load(c("tidyverse", "gauntlet"))
+quite = gauntlet::package_load(c("tidyverse", "gauntlet", "here"))
 ```
 
 ## Introduction
@@ -50,7 +51,11 @@ Having a standard template ensures:
 
 ### The Script Template
 
-Here is the recommended template for your R scripts. This format organizes metadata at the top, followed by clearly defined sections for loading libraries, paths, data, and helper functions.
+Here is the recommended template for your R scripts. 
+
+There is a small section at the top that can be populated with specific metadata - script description, author, and additional notes (ReadMe). This information is crucial for anyone coming back to the script later, especially when script names might not be descriptive enough.
+
+This section is then followed by clearly defined sections for loading libraries, paths, data, and helper functions.
 
 ```{r eval=FALSE, echo=TRUE}
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,8 +104,6 @@ library(gauntlet)
 #script end=====================================================================
 ```
 
-As you can see, the first section contains the metadata such as the description, author, and additional notes (ReadMe). This information is crucial for anyone coming back to the script later, especially when script names might not be descriptive enough.
-
 ---
 
 ### Walkthrough of the Template
@@ -132,7 +135,9 @@ Here’s what the metadata block should look like:
 
 #### 2. **Library Setup**
 
-After the metadata section, the first executable code should load all the required libraries. Having libraries declared in one place ensures that all dependencies are loaded at the beginning, preventing errors due to missing packages later in the script.
+After the metadata section, the first executable code should load all the required libraries. 
+
+Having libraries declared in one place ensures that all dependencies are loaded at the beginning, preventing errors due to missing packages later in the script.
 
 ```{r eval=FALSE, echo=TRUE}
 #library set-up=================================================================
@@ -148,15 +153,39 @@ Next, define the paths for any input data or outputs. Keeping paths together mak
 ```{r eval=FALSE, echo=TRUE}
 #path set-up====================================================================
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#content in this section should be removed if in production - ok for dev
 input_path = "path/to/data"
 url_data_1 = 'www.somedata1.com'
 output_path = "path/to/output"
 ```
 
+#### 4. **Source/Define Functions**
+
+Define all custom functions and source all scripts that are required to  run the code. This clearly communicates to that downstream users what additional materials they will need to run the script.
+
+```{r eval=FALSE, echo=TRUE}
+#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+source("./R/script_containing_functions.R")
+
+custom_function = function(input){
+  # ...code...
+}
+```
+
+#### 5. **Loading Data**
+
+It's also important to load your data early on in the script, ensuring that it's done in a way that clearly defines the location of your data file. This way, others can easily understand where the data comes from and how to adjust it if needed.
+
+```{r eval=FALSE, echo=TRUE}
+#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+data = read.csv(here(input_path, "file.csv"))
+internet_data = httr::GET(url_data_1)
+```
+
 ---
 
-### Example: Generating Temporary Files
+#### Case Study
 
 In this section, we’ll explore the benefits of using a structured template by creating and analyzing a temporary directory of example R scripts.
 
@@ -257,7 +286,6 @@ From the metadata, we can immediately understand the purpose of this script and 
 Next, let’s analyze all the files in the directory at once:
 
 ```{r error=FALSE, message=FALSE, warning=FALSE}
-
 detail_R_scripts_q = purrr::quietly(detail_R_scripts)
 
 table = detail_R_scripts_q(temp_sub_dir) 
@@ -266,11 +294,11 @@ table$result %>%
   mutate(across(everything(), replace_na, "NULL")) %>% 
   arrange(script) %>% 
   reactable::reactable()
-
 ```
 
-Key takeaways:
-- We can now view all the scripts and their associated metadata.
+Key takeaways:     
+
+- We can now view all the scripts and their associated metadata.    
 - Scripts following the recommended template have clear metadata, while those without the template remain ambiguous, with missing author and description details.
 
 *Note*: 
