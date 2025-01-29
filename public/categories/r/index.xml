@@ -6,7 +6,28 @@
     <description>Recent content in R on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 21 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5 Minute Tutorials: Using Protocol Buffers in R</title>
+      <link>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</link>
+      <pubDate>Tue, 28 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</guid>
+      <description>Quick OverviewHi hi!
+This is a quick tutorial on using Protocol Buffers (protobufs) in R, particularly for working with GTFS-realtime data. If you’ve ever struggled to parse protobuf data, this guide will walk through the key steps to get you started.
+What are Protocol Buffers?Protocol Buffers (protobufs) are a language-neutral, platform-neutral extensible mechanism for serializing structured data. They are commonly used in real-time data applications, such as GTFS-realtime, because they are lightweight and efficient.</description>
+    </item>
+    
+    <item>
+      <title>Organized Code</title>
+      <link>https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/</link>
+      <pubDate>Wed, 02 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/</guid>
+      <description>IntroductionThis vignette explains why using a consistent script structure and metadata format is essential for collaboration, efficiency, and reproducibility in R projects. By following a standardized template, you ensure that anyone using your scripts can quickly understand what the script does, who created it, and any specific requirements needed to run it.
+By the end of this vignette, you’ll be familiar with a script template that helps organize code effectively and facilitates rapid development.</description>
+    </item>
+    
     <item>
       <title>5 Minute Tutorials: Fast Data Loading</title>
       <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</link>
@@ -43,17 +64,6 @@ I only use show note descriptions so any reference to Elon in a podcast but not 
 This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.
 What are we looking at todayI wanted to share how to use purrr::map() to apply function that produces more that one output (columns) to a dataframe.
 HowWe ware going to make basic script that lists all files in a directory and its sub-directories that have a specific extension.</description>
-    </item>
-    
-    <item>
-      <title>Clean that Code up with purrr</title>
-      <link>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</link>
-      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</guid>
-      <description>This blog serves as a brief tutorial on how to utilize the purrr package by our studio to streamline and simplify complex or repetitive sections of code.
-BackgroundOne major advantage of working with us is the ability to leverage the power of the Tidyverse R package environment. This package environment, developed by RStudio, is designed to enhance the usability of R.
-An example of this enhancement is the use of ggplot for creating plots in R, as opposed to base R.</description>
     </item>
     
     <item>

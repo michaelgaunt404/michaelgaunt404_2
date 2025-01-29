@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Clear, well organized code using code templates.'><title>Organized Code</title>
+
+<link rel='canonical' href='https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/'>
+
+<link rel="stylesheet" href="/scss/style.min.css"><meta property='og:title' content='Organized Code'>
+<meta property='og:description' content='Clear, well organized code using code templates.'>
+<meta property='og:url' content='https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/'>
+<meta property='og:site_name' content='The Gauntlet: An R Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='purrr' /><meta property='article:tag' content='vectorization' /><meta property='article:tag' content='programming' /><meta property='article:published_time' content='2024-10-02T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2024-10-02T00:00:00&#43;00:00'/>
+<meta name="twitter:title" content="Organized Code">
+<meta name="twitter:description" content="Clear, well organized code using code templates.">
+    <link rel="shortcut icon" href="favicon.ico" />
+
+    </head>
+    <body class="
+    article-page 
+">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex 
+    
+        on-phone--column extended
+    
+">
+    
+        <aside class="sidebar left-sidebar sticky">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header class="site-info">
+        
+            
+            <figure class="site-avatar">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/mg404_sm_hu94f382ba3df533b045fcdf65f08e39ae_30299_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+
+                
+            </figure>
+            
+        
+        
+        <h1 class="site-name"><a href="/">The Gauntlet: An R Blog</a></h1>
+        <h2 class="site-description">Data Scientist, R Enthusiast</h2></header>
+
+    <ol class="menu" id="main-menu">
+        
+        
+        
+
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://github.com/michaelgaunt404/' >
+                
+                
+                
+                <span>GitHub</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://gitlab.com/michaelgaunt404/' >
+                
+                
+                
+                <span>GitLab</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://twitter.com/rstudio/' >
+                
+                
+                
+                <span>Twitter</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='https://plotly-r.com/client-side-linking.html' >
+                
+                
+                
+                <span>Youtube</span>
+            </a>
+        </li>
+        
+
+        
+            <li id="dark-mode-toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                <span>Dark Mode</span>
+            </li>
+        
+    </ol>
+</aside>
+
+    
+<main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/r/" >
+                R
+            </a>
+        
+            <a href="/categories/programming/" >
+                Programming
+            </a>
+        
+    </header>
+    
+
+    <h2 class="article-title">
+        <a href="/2024/10/02/clean-structured-code/">Organized Code</a>
+    </h2>
+
+    
+    <h3 class="article-subtitle">
+        Clear, well organized code using code templates.
+    </h3>
+    
+
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Oct 02, 2024</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    6 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+</div>
+</header>
+
+    <section class="article-content">
+    
+<script src="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/core-js/shim.min.js"></script>
+<script src="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/react/react.min.js"></script>
+<script src="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/react/react-dom.min.js"></script>
+<script src="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/reactwidget/react-tools.umd.cjs"></script>
+<link href="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/htmltools-fill/fill.css" rel="stylesheet" />
+<script src="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/htmlwidgets/htmlwidgets.js"></script>
+<link href="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/reactable/reactable.css" rel="stylesheet" />
+<script src="https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/index_files/reactable-binding/reactable.js"></script>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This vignette explains why using a consistent script structure and metadata format is essential for collaboration, efficiency, and reproducibility in R projects. By following a standardized template, you ensure that anyone using your scripts can quickly understand what the script does, who created it, and any specific requirements needed to run it.</p>
+<p>By the end of this vignette, you’ll be familiar with a script template that helps organize code effectively and facilitates rapid development.</p>
+<hr />
+<div id="why-use-a-standard-template" class="section level3">
+<h3>Why Use a Standard Template?</h3>
+<p>Having a standard template ensures:</p>
+<ul>
+<li><strong>Consistency</strong>: Scripts follow the same structure, making it easier for anyone to understand and maintain them.<br />
+</li>
+<li><strong>Reusability</strong>: Repeated sections like library loading or path setup can be quickly modified for different environments or projects.<br />
+</li>
+<li><strong>Error Reduction</strong>: Code dependencies (such as library loading or data sourcing) are defined in one place, reducing errors due to missing libraries or data.<br />
+</li>
+<li><strong>Collaboration</strong>: Team members can easily navigate scripts without needing deep explanations.</li>
+</ul>
+<hr />
+</div>
+<div id="the-script-template" class="section level3">
+<h3>The Script Template</h3>
+<p>Here is the recommended template for your R scripts.</p>
+<p>There is a small section at the top that can be populated with specific metadata - script description, author, and additional notes (ReadMe). This information is crucial for anyone coming back to the script later, especially when script names might not be descriptive enough.</p>
+<p>This section is then followed by clearly defined sections for loading libraries, paths, data, and helper functions.</p>
+<pre class="r"><code>#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: This script [[insert brief readme here]]
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: [[insert brief readme here]]
+#-------- [[insert brief readme here]]
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+library(tidyverse)
+library(gauntlet)
+
+#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+
+#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#content in this section should be removed if in production - ok for dev
+#area to upload data with and to perform initial munging
+#please add test data here so that others may use/unit test these scripts
+
+
+#main header====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 1==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##sub header 2==================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#script end=====================================================================</code></pre>
+<hr />
+</div>
+<div id="walkthrough-of-the-template" class="section level3">
+<h3>Walkthrough of the Template</h3>
+<div id="metadata-section" class="section level4">
+<h4>1. <strong>Metadata Section</strong></h4>
+<p>At the top of every script, include a commented-out section with three elements:</p>
+<ul>
+<li><strong>DESC</strong>: Briefly explain what the script does.<br />
+</li>
+<li><strong>By</strong>: The name of the person who created the script.<br />
+</li>
+<li><strong>README</strong>: Any additional information for future users, such as requirements, assumptions, or related files.</li>
+</ul>
+<p>Here’s what the metadata block should look like:</p>
+<pre class="r"><code>#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# DESC: Script pre-processes Austin housing data for spatial modeling
+#
+# By: mike gaunt, mike.gaunt.123@email.com
+#
+# README: makes a number of features based on initial feature space
+#-------- converts to spatial object for mapping and GIS purposes
+#
+# *please use 80 character margins
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</code></pre>
+</div>
+<div id="library-setup" class="section level4">
+<h4>2. <strong>Library Setup</strong></h4>
+<p>After the metadata section, the first executable code should load all the required libraries.</p>
+<p>Having libraries declared in one place ensures that all dependencies are loaded at the beginning, preventing errors due to missing packages later in the script.</p>
+<pre class="r"><code>#library set-up=================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+library(tidyverse)
+library(glue)</code></pre>
+</div>
+<div id="path-setup" class="section level4">
+<h4>3. <strong>Path Setup</strong></h4>
+<p>Next, define the paths for any input data or outputs. Keeping paths together makes it easier to adapt the script to different file structures without searching through the entire code.</p>
+<pre class="r"><code>#path set-up====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_path = &quot;path/to/data&quot;
+url_data_1 = &#39;www.somedata1.com&#39;
+output_path = &quot;path/to/output&quot;</code></pre>
+</div>
+<div id="sourcedefine-functions" class="section level4">
+<h4>4. <strong>Source/Define Functions</strong></h4>
+<p>Define all custom functions and source all scripts that are required to run the code. This clearly communicates to that downstream users what additional materials they will need to run the script.</p>
+<pre class="r"><code>#source helpers/utilities=======================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+source(&quot;./R/script_containing_functions.R&quot;)
+
+custom_function = function(input){
+  # ...code...
+}</code></pre>
+</div>
+<div id="loading-data" class="section level4">
+<h4>5. <strong>Loading Data</strong></h4>
+<p>It’s also important to load your data early on in the script, ensuring that it’s done in a way that clearly defines the location of your data file. This way, others can easily understand where the data comes from and how to adjust it if needed.</p>
+<pre class="r"><code>#source data====================================================================
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+data = read.csv(here(input_path, &quot;file.csv&quot;))
+internet_data = httr::GET(url_data_1)</code></pre>
+<hr />
+</div>
+<div id="case-study" class="section level4">
+<h4>Case Study</h4>
+<p>In this section, we’ll explore the benefits of using a structured template by creating and analyzing a temporary directory of example R scripts.</p>
+<p>The code below sets up a temporary directory and generates several example R scripts:</p>
+<p>After creating the scripts, we can check what’s inside the directory:</p>
+<pre><code>## [1] &quot;dev_example_2.R&quot;    &quot;dev_example_3.R&quot;    &quot;process_mtcars.R&quot;  
+## [4] &quot;script_example_1.R&quot; &quot;script_example_4.R&quot; &quot;temp_function_1.R&quot;</code></pre>
+<p>As you can see, the file names are not very descriptive. Imagine receiving a large codebase with numerous files like this. It would be challenging to understand who wrote the scripts, what they do, or how they are connected.</p>
+<p>Now, let’s examine one of the scripts in detail:</p>
+<pre><code>## #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## #
+## # DESC: A script for visualizing results
+## #
+## # By: Bob Lee, bobby.lee@aol.com
+## #
+## # README: Generates plots for report
+## #-------- Auto saves to shared drive location
+## #
+## # *please use 80 character margins
+## #
+## #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 
+## .....code.....</code></pre>
+<p>From the metadata, we can immediately understand the purpose of this script and who created it. The README section also provides valuable context, such as how the plots are automatically saved rather than being stored in a variable, preventing confusion for future users.</p>
+<p>Next, let’s analyze all the files in the directory at once:</p>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-1" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"script":["dev_example_2.R","dev_example_3.R","process_mtcars.R","script_example_1.R","script_example_4.R","temp_function_1.R"],"type":["dev","dev","NULL","script","script","NULL"],"author":["Jane Smith, j.smith@yerhoo.com","Alice Johnson, a97@moomle.com","NULL","Bob Lee, bobby.lee@aol.com","John Doe, jd@Rmail.com","NULL"],"description":["A script for data cleaning","A helper function script","NULL","A script for visualizing results","A script to demonstrate metadata","NULL"],"details":["This script focuses on cleaning survey data                                                                             Perfroms hashing of PII features                                                                                        ","Contains helper functions for analysis                                                                                  Sourced manually by other scripts                                                                                       ","NULL","Generates plots for report                                                                                              Auto saves to shared drive location                                                                                     ","Additional context for future users                                                                                     Some other text                                                                                                         ","NULL"]},"columns":[{"id":"script","name":"script","type":"character"},{"id":"type","name":"type","type":"character"},{"id":"author","name":"author","type":"character"},{"id":"description","name":"description","type":"character"},{"id":"details","name":"details","type":"character"}],"dataKey":"f747b908cb52b6911a6de44ed91b4104"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>Key takeaways:</p>
+<ul>
+<li>We can now view all the scripts and their associated metadata.<br />
+</li>
+<li>Scripts following the recommended template have clear metadata, while those without the template remain ambiguous, with missing author and description details.</li>
+</ul>
+<p><em>Note</em>:
+I want to quickly highlight the benefits of using prefixes like <code>script_</code> or <code>dev_</code> in file names. These prefixes provide clarity regarding what the code does or at what stage of development it is.</p>
+<p>The way I use these prefixes is as follows: every code file starts off as a <strong>dev</strong> script. If I’m initially building something out, I save it with the <code>dev_</code> prefix.</p>
+<p>Once a script reaches a stage where it’s fairly formalized and unlikely to change, I save it with the <code>script_</code> prefix - denoting that it is now “stable”.</p>
+</div>
+</div>
+</div>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/purrr/">purrr</a>
+        
+            <a href="/tags/vectorization/">vectorization</a>
+        
+            <a href="/tags/programming/">programming</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+</article>
+
+    <aside class="related-contents--wrapper">
+    
+    
+        <h2 class="section-title">Related contents</h2>
+        <div class="related-contents">
+            <div class="flex article-list--tile">
+                
+                    
+<article class="">
+    <a href="/2023/10/02/purrr-correlation-plots/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Clean that Code up with purrr</h2>
+        </div>
+    </a>
+</article>
+                
+                    
+<article class="">
+    <a href="/2023/10/13/quickie-purrr/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">5 Minute Tutorials: Tricks with Purrr::map() #1</h2>
+        </div>
+    </a>
+</article>
+                
+                    
+<article class="">
+    <a href="/2023/12/21/quickie-fast-data-loading/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">5 Minute Tutorials: Fast Data Loading</h2>
+        </div>
+    </a>
+</article>
+                
+            </div>
+        </div>
+    
+</aside>
+
+     
+    
+        
+    <div class="disqus-container">
+    
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (DISQUS) {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2025 The Gauntlet: An R Blog
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.5.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css"integrity="sha256-c0uckgykQ9v5k&#43;IqViZOZKc47Jn7KQil4/MP3ySA3F8="crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css"integrity="sha256-SBLU4vv6CA6lHsZ1XyTdhyjJxCjPif/TRkjnsyGAGnE="crossorigin="anonymous"
+            >
+
+            </main>
+    
+
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.5/dist/vibrant.min.js"integrity="sha256-5NovOZc4iwiAWTYIFiIM7DxKUXKWvpVEuMEPLzcm5/g="crossorigin="anonymous"
+                defer="false"
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
