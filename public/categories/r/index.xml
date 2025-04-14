@@ -6,7 +6,19 @@
     <description>Recent content in R on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 11 Apr 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5 Minute Tutorials: Guarding Against Spatial *and* Temporal Leakage</title>
+      <link>https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/</guid>
+      <description>Quick OverviewHey hey —
+Today’s 5-minute trick tackles a big gap I kept running into:
+I needed to model something with both spatial structure and time dependencies, but nothing I found in R’s modeling universe would let me resample across both space and time without leakage.
+What’s the modeling task?Let’s say you want to spatially interpolate predictions (i.e., predict at new locations) and forecast in time (i.</description>
+    </item>
+    
     <item>
       <title>5 Minute Tutorials: Using Protocol Buffers in R</title>
       <link>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</link>

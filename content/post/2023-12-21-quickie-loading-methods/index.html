@@ -18,6 +18,7 @@ comments: yes
 <script src="{{< blogdown/postref >}}index_files/react/react-dom.min.js"></script>
 <script src="{{< blogdown/postref >}}index_files/reactwidget/react-tools.js"></script>
 <script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<link href="{{< blogdown/postref >}}index_files/reactable/reactable.css" rel="stylesheet" />
 <script src="{{< blogdown/postref >}}index_files/reactable-binding/reactable.js"></script>
 
 
@@ -126,10 +127,21 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;dt&quot;, &quot;arrow&quot;,
   mutate(
     time_adj = round(time_elapsed/time_elapsed[1], 1)
     ,size_adj = round(size/size[1], 1))</code></pre>
+<pre><code>## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion</code></pre>
 <p>And here is the comparison of how fast each method performed the action and the size of the resulting saved data file.</p>
 <p>We benchmark all methods and metrics to <code>qs</code>.</p>
-<div id="htmlwidget-1" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","dt","arrow","parquet","csv"],"time_elapsed":[2.22,4.77,1,1.1,1.79,71.89],"size":[38463456,180000215,178533835,105197946,64073111,247422781],"time_adj":[1,2.1,0.5,0.5,0.8,32.4],"size_adj":[1,4.7,4.6,2.7,1.7,6.4]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"e4895ffa04929875c7d8ffdfcb7c0903"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-1" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","dt","arrow","parquet","csv"],"time_elapsed":[1.57,2.19,0.96,1.21,0.93,48.11],"size":[38463456,180000215,178533835,105197778,67553720,247422781],"time_adj":[1,1.4,0.6,0.8,0.6,30.6],"size_adj":[1,4.7,4.6,2.7,1.8,6.4]},"columns":[{"id":"extension","name":"extension","type":"character"},{"id":"time_elapsed","name":"time_elapsed","type":"numeric"},{"id":"size","name":"size","type":"numeric"},{"id":"time_adj","name":"time_adj","type":"numeric"},{"id":"size_adj","name":"size_adj","type":"numeric"}],"dataKey":"53447bacd5b1a902a9fc050f3395669d"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 <p>Few points of interest:</p>
 <ul>
 <li>Using <code>write.csv</code> is clearly antiquated, save yourself file storage and time and stop using it.</li>
@@ -153,14 +165,14 @@ nested_data_only = model_object %&gt;%
   select(!c(mod_lm))
 
 print(model_object)</code></pre>
-<pre><code>## # A tibble: 4 x 4
+<pre><code>## # A tibble: 4 × 4
 ## # Groups:   model [4]
 ##   model   data                     mod_lm     mod_aic  
 ##   &lt;chr&gt;   &lt;list&gt;                   &lt;list&gt;     &lt;list&gt;   
-## 1 model_1 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
-## 2 model_2 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
-## 3 model_3 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
-## 4 model_4 &lt;tibble [1,250,000 x 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;</code></pre>
+## 1 model_1 &lt;tibble [1,250,000 × 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 2 model_2 &lt;tibble [1,250,000 × 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 3 model_3 &lt;tibble [1,250,000 × 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;
+## 4 model_4 &lt;tibble [1,250,000 × 3]&gt; &lt;smmry.lm&gt; &lt;dbl [1]&gt;</code></pre>
 <div id="nested-data-only-objects" class="section level3">
 <h3>Nested Data-Only Objects</h3>
 <p>We can apply any method here besides the basic <code>write.csv2()</code> function.</p>
@@ -174,9 +186,16 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;, &quot;arrow&quot;, &quot;parquet&q
   mutate(
     time_adj = round(time_elapsed/time_elapsed[1], 1)
     ,size_adj = round(size/size[1], 1))</code></pre>
+<pre><code>## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion</code></pre>
 <p>And to compare each method.</p>
-<div id="htmlwidget-2" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","arrow","parquet"],"time_elapsed":[0.94,2.62,0.41,0.97],"size":[37123184,105001438,85007666,64014978],"time_adj":[1,2.8,0.4,1],"size_adj":[1,2.8,2.3,1.7]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"2ea280245dfab83883d42833a1179147"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-2" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds","arrow","parquet"],"time_elapsed":[0.64,1.05,0.39,0.67],"size":[37123184,105001438,85007666,64015003],"time_adj":[1,1.6,0.6,1],"size_adj":[1,2.8,2.3,1.7]},"columns":[{"id":"extension","name":"extension","type":"character"},{"id":"time_elapsed","name":"time_elapsed","type":"numeric"},{"id":"size","name":"size","type":"numeric"},{"id":"time_adj","name":"time_adj","type":"numeric"},{"id":"size_adj","name":"size_adj","type":"numeric"}],"dataKey":"c84b3328ce6c4eacb9d65142cd9fd48f"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="nested-objects-with-special-attribute" class="section level3">
 <h3>Nested Objects with Special Attribute</h3>
@@ -197,9 +216,12 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;%
   mutate(
     time_adj = round(time_elapsed/time_elapsed[1], 1)
     ,size_adj = round(size/size[1], 1))</code></pre>
+<pre><code>## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion</code></pre>
 <p>And to compare each method again.</p>
-<div id="htmlwidget-3" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.79,2.38],"size":[37123184,105001438],"time_adj":[1,3],"size_adj":[1,2.8]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"d49478f7d6a0d4e7fb0fe3e7eeb84256"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-3" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.72,1.03],"size":[37123184,105001438],"time_adj":[1,1.4],"size_adj":[1,2.8]},"columns":[{"id":"extension","name":"extension","type":"character"},{"id":"time_elapsed","name":"time_elapsed","type":"numeric"},{"id":"size","name":"size","type":"numeric"},{"id":"time_adj","name":"time_adj","type":"numeric"},{"id":"size_adj","name":"size_adj","type":"numeric"}],"dataKey":"f1c06a0fcf5111aa33db8e6f49c1be07"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 <p>WOW! <code>qs</code> really takes the cake! I know what I’m using from here on out.</p>
 </div>
 </div>
@@ -209,7 +231,6 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;%
 <p>Turns out that, like the lm nested dataframe above, arrow and parquet file types can store GIS objects.</p>
 <p>This isn’t a big deal as spatial object can be converted to a non-spatial object with the geometry defined via WKT and then saved with <code>arrow</code> and <code>parquet</code>…. dealers choice!</p>
 <pre class="r"><code>library(mapview)</code></pre>
-<pre><code>## Warning: package &#39;mapview&#39; was built under R version 4.1.3</code></pre>
 <pre class="r"><code>breweries_big = breweries %&gt;% 
   sample_n(size = 500, replace = T)</code></pre>
 <pre class="r"><code>tempdir = tempdir()
@@ -222,9 +243,12 @@ df_bench = c(&quot;qs&quot;, &quot;rds&quot;) %&gt;%
   mutate(
     time_adj = round(time_elapsed/time_elapsed[1], 1)
     ,size_adj = round(size/size[1], 1))</code></pre>
+<pre><code>## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion</code></pre>
 <p>And to compare each method again.</p>
-<div id="htmlwidget-4" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-4">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.02,0.03],"size":[16628,107782],"time_adj":[1,1.5],"size_adj":[1,6.5]},"columns":[{"accessor":"extension","name":"extension","type":"character"},{"accessor":"time_elapsed","name":"time_elapsed","type":"numeric"},{"accessor":"size","name":"size","type":"numeric"},{"accessor":"time_adj","name":"time_adj","type":"numeric"},{"accessor":"size_adj","name":"size_adj","type":"numeric"}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"e082e41f53a7098753b074b1d47d4d13"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<div class="reactable html-widget html-fill-item" id="htmlwidget-4" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-4">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"extension":["qs","rds"],"time_elapsed":[0.02,0.02],"size":[16628,107782],"time_adj":[1,1],"size_adj":[1,6.5]},"columns":[{"id":"extension","name":"extension","type":"character"},{"id":"time_elapsed","name":"time_elapsed","type":"numeric"},{"id":"size","name":"size","type":"numeric"},{"id":"time_adj","name":"time_adj","type":"numeric"},{"id":"size_adj","name":"size_adj","type":"numeric"}],"dataKey":"61d020f2e3f67068d380924f4c54fea5"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="wrap-up" class="section level2">
 <h2>Wrap Up</h2>
