@@ -2,7 +2,7 @@
 title: "5 Minute Tutorials: Fast Data Loading"
 author: 'Mike Gaunt'
 date: '2023-12-21'
-slug: quickie-purrr
+slug: quickie-fast-data-loading
 categories: ["R", "Data"]
 tags: ["data storage", "vectorization", '5Min Tutorials']
 description: "Efficient data storage methods beyond CSVs."
@@ -37,7 +37,7 @@ We are going to make basic script that creates a pretty large data set and we wi
 ## What you need 
 
 Libraries:
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(qs)
 library(data.table)
 library(readr)
@@ -84,7 +84,7 @@ save_and_read_data <- function(extension
     stop("Unsupported file extension. Please use 'qs' or 'rds'.")
   }
   
-  time_elapsed = tictoc::toc()
+  time_elapsed = tictoc::toc(quiet = T)
   time_elapsed_seconds <- tictoc_seconds(as.numeric(time_elapsed))
   file_size <- file.size(file)
   

@@ -2,6 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://mikegaunt404.netlify.app/about/</loc>
+    <lastmod>2025-04-14T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</loc>
     <lastmod>2025-01-28T00:00:00+00:00</lastmod>
   </url><url>
@@ -44,15 +47,6 @@
     <loc>https://mikegaunt404.netlify.app/tags/vectorization/</loc>
     <lastmod>2024-10-02T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</loc>
-    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/categories/data/</loc>
-    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/tags/data-storage/</loc>
-    <lastmod>2023-12-21T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://mikegaunt404.netlify.app/tags/fun/</loc>
     <lastmod>2023-11-14T00:00:00+00:00</lastmod>
   </url><url>
@@ -69,9 +63,6 @@
     <lastmod>2023-11-14T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://mikegaunt404.netlify.app/2023/10/13/quickie-purrr/</loc>
-    <lastmod>2023-10-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://mikegaunt404.netlify.app/about/</loc>
     <lastmod>2023-10-13T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://mikegaunt404.netlify.app/2023/10/02/purrr-correlation-plots/</loc>

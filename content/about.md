@@ -1,29 +1,27 @@
 ---
-title: "About"
-date: '2023-10-13'
+title: "About Me"
+date: '2025-04-14'
 ---
 
-Hello! I'm Mike and I'm passionate data scientist with a deep love for the R programming language. My work primarily revolves around the transportation field, where I specialize in analyzing extensive datasets, handling modeling tasks, and leveraging GIS technology. My journey into mapping began in my early years, and I'm delighted to be applying my expertise professionally.
+Hi, I’m Mike. 
 
-I really enjoy contributing to projects that require innovative data science solutions. I excel in constructing robust analysis pipelines, unearthing valuable insights through advanced statistics, and delivering data-driven solutions to our clients.
+I'm a huge R enthusiast and data scientist currently working in the transportation field. 
+I build software tools, work with large data sets, develop/run models, and use GIS to support real-world planning, safety and infrastructure projects.
 
-My academic journey includes achieving a master's degree in Transportation Technology and Policy from the Institute for Transportation Studies at the University of California, Davis. During my academic pursuits, I explored transportation policy, delving into emerging mobility solutions and mastering advanced statistical techniques, such as machine learning and data analysis. Before embarking on my data science journey, I worked as a mechanical engineer at Virgin Hyperloop One (VH1).
-
-My areas of professional interest encompass:
-
-+ Transportation
-+ Modeling Tasks
-+ GIS and Mapping
-+ Advanced Statistics, including Bayesian Methods (uncertainty!)
-+ Data Visualization
-
-The purpose of this blog is to showcase some of the work I've accomplished using R and to assist others in learning R and tackling data science tasks.
+I’m especially into projects that involve:
+- Transportation analytics and modeling  
+- GIS and spatial workflows  
+- Advanced statistics, including Bayesian methods and uncertainty  
+- Data visualization and communication  
+- Automating workflows and building reusable tools  
+- Working with real-time or large-scale data (e.g., GTFS, Replica, INRIX)  
+- Building interactive data products and exploratory tools for clients  
 
 
+Before working in data science, I was a mechanical engineer in aerospace and at Virgin Hyperloop One. 
+I earned a master’s degree in Transportation Technology and Policy from UC Davis.
 
-
-
-
+This blog is where I post projects, experiments, and R code—partly to document my work, partly to help others working on similar problems.
 
 
 
