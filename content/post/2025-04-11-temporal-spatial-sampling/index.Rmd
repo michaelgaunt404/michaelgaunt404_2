@@ -209,7 +209,7 @@ view_split_groups_date <- function(all, train, val){
 
 Now we make a `plotly` interactive plot:
 
-```{r include = F}
+```{r}
 data = list(
   inner_resamples$splits,
   1:length(inner_resamples$splits)
