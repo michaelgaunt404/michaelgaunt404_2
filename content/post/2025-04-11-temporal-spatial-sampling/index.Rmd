@@ -13,20 +13,30 @@ license: ~
 hidden: no
 ---
 
-
 # Quick Overview
 
 Hey hey —  
-Today’s 5-minute trick tackles a big gap I kept running into: **I needed to model something with both spatial structure _and_ time dependencies**, but nothing I found in R’s modeling universe would let me **resample across both space and time** _without leakage_.
 
-So I wrote my own function for it.  
+Today’s 5-minute trick tackles a big gap I kept running into: 
+
+**I needed to model something with both spatial structure _and_ time dependencies**, but nothing I found in R’s modeling universe would let me **resample across both space and time** _without leakage_.
+
+## What's the modeling task?
+
+Let’s say you want to **spatially interpolate predictions** (i.e., predict at new locations) **_and_ forecast in time** (i.e., predict future values). Your model has to generalize both *in space* and *in time*.
+
+If you don’t split your data smartly — say you train your model on one time slice and evaluate on the same locations a few days later — you might **leak information** across your train/test sets and falsely inflate your model's performance.
+
+Even worse, if you’re tuning a model and evaluating performance with leakage, you're optimizing toward something that will crumble in production.
+
+In order to do this, I wrote my own function that integrates with and extends the tidymodels' existing sampling framework  
 And yes, I’m going to share it 😎
 
 ---
 
-Required libraries.
+## Required Libraries
 
-```{r}
+```{r results='hide', message=FALSE, warning=FALSE}
 library(CAST)
 library(tidyverse)
 library(sp)
@@ -36,29 +46,33 @@ library(plotly)
 library(crosstalk)
 ```
 
+---
+
 # What We're Modeling
 
-We're working with the `cookfarm` dataset from the `CAST` package. Think of it as repeat measurements (e.g., soil moisture) across a bunch of **spatial sensor locations** over time. Here’s a tiny peek:
+We're working with the `cookfarm` dataset from the `CAST` package.  
+ 
+Each record is a repeated measurement (e.g., soil moisture) from one of many **spatial sensor locations** over time. So the dataset is **spatiotemporal**, with groupings by sensor.
+
+Here's a peek:
 
 ```{r}
 data("cookfarm")
-cookfarm %>%
-  arrange(SOURCEID, Date) %>%
-  head(10)
+glimpse(cookfarm)
 ```
 
-Each `SOURCEID` is a different sensor. We want to:
+Goals:
 
-- Split the data **spatially** so no sensors appear in both training and test sets,
-- Then split each of those folds **temporally** using a sliding window.
+- Split the data **spatially** so no sensors (SOURCEIDs) appear in both train and test
+- Then **temporally** within each spatial fold using a sliding window
 
-Why? Because **leakage ruins modeling** — and this guards against both spatial and temporal flavors of it.
+Leakage would allow the model to "peek" at test data by sharing sensors or future observations between train/test - which is bad!!!.
 
 ---
 
 # Step 1: Spatial Folds
 
-We start by selecting a small slice of data (two weeks in 2012 at one depth), then convert it to an `sf` object:
+We'll take a slice of the data (two weeks in 2012 at one depth), and convert it to an `sf` object:
 
 ```{r}
 trainDat <- cookfarm %>%
@@ -67,11 +81,11 @@ trainDat <- cookfarm %>%
          lubridate::week(Date) %in% 13:14) %>%
   mutate(Date = as.Date(Date)) %>%
   st_as_sf(coords = c("Easting", "Northing"), crs = 26911)
-
-trainDat %>% glimpse()
 ```
 
-Now we split spatially so each fold includes unique sensors (`SOURCEID`s):
+Now we split spatially so each fold has unique sensors (`SOURCEID`s). 
+
+You could also use `spatial_clustering_cv()` from the `spatialsample` package — that’s a great option too.
 
 ```{r}
 spatial_folds <- trainDat %>%
@@ -80,19 +94,25 @@ spatial_folds <- trainDat %>%
 spatial_folds
 ```
 
-Now we’ve got training and validation folds that are **mutually exclusive spatially**. Next up: **time**.
+Now we have training and validation folds that are **mutually exclusive in space**.
+
+Next up: **time**.
 
 ---
 
 # Step 2: Rolling Origin… with Groups?!
 
-Rolling origin resampling (`sliding_window()`, etc.) is awesome — but it **fails** when your data has groups (like different sensors). It just slices based on the data frame index. So I wrote a helper function that loops through each sensor group, creates rolling origin resamples within each group, and then merges the slices.
+Rolling origin resampling (`sliding_window()`, etc.) is great for time —  
+but it fails with grouped data, like multiple sensors. 
 
-### Here's the function:
-(You can paste in your `create_grouped_rolling_origin()` function here)
+It also expects a singular time signal so it just slices the row indices, ignoring your groupings.
+
+So I wrote a helper that loops through each sensor group, applies rolling origin resampling, and merges the results:
+
+### `create_grouped_rolling_origin()`:
+
 ```{r}
 create_grouped_rolling_origin <- function(data, initial, assess, cumulative = TRUE, skip = 0) {
-  # browser()
   sensors <- unique(data$SOURCEID)
   splits_list <- list()
   i = 0
@@ -102,7 +122,7 @@ create_grouped_rolling_origin <- function(data, initial, assess, cumulative = TR
     sensor_data <- data %>% 
       filter(SOURCEID == sensor) %>%
       arrange(Date)
-    # Only create splits if there are enough rows (at least initial + assess)
+
     if (nrow(sensor_data) >= (initial + assess)) {
       ro <- rolling_origin(sensor_data, 
                            initial = initial, 
@@ -110,75 +130,68 @@ create_grouped_rolling_origin <- function(data, initial, assess, cumulative = TR
                            cumulative = cumulative, 
                            skip = skip) %>% 
         mutate(sensor = sensor)
-      # Append all splits from this sensor to the list
-      # splits_list = list(splits_list, ro)
+
       splits_list[[i]] = ro
     }
   }
     
-    splits_list = splits_list %>% 
-      reduce(bind_rows) %>%  
-      group_by(id_1 = id) %>% 
-      group_map(~{
-        temp_analysis = .x$splits %>% 
-          map_df(~{
-            analysis(.x)
-          })
-        
-        temp_assessment = .x$splits %>% 
-          map_df(~{
-            assessment(.x)
-          })
-        
-        combined_data <- bind_rows(temp_analysis, temp_assessment)
-        n_analysis <- nrow(temp_analysis)
-        
-        my_rsplit <- structure(
-          list(
-            data = combined_data,
-            in_id = 1:n_analysis,
-            out_id = (n_analysis + 1):nrow(combined_data)
-          ),
-          class = c("sliding_period_split", "rsplit")
-          
-        )
-        
-      })
-    
-    inner_rset <- rsample::new_rset(
-      splits = splits_list,
-      ids = paste0("Resample", seq_along(splits_list))
-    )
+  splits_list = splits_list %>% 
+    reduce(bind_rows) %>%  
+    group_by(id_1 = id) %>% 
+    group_map(~{
+      temp_analysis = .x$splits %>% 
+        map_df(~ analysis(.x))
+      
+      temp_assessment = .x$splits %>% 
+        map_df(~ assessment(.x))
+      
+      combined_data <- bind_rows(temp_analysis, temp_assessment)
+      n_analysis <- nrow(temp_analysis)
+      
+      structure(
+        list(
+          data = combined_data,
+          in_id = 1:n_analysis,
+          out_id = (n_analysis + 1):nrow(combined_data)
+        ),
+        class = c("sliding_period_split", "rsplit")
+      )
+    })
   
-    class(inner_rset) <- c("sliding_period", "rset", "tbl_df", "tbl", "data.frame")
+  inner_rset <- rsample::new_rset(
+    splits = splits_list,
+    ids = paste0("Resample", seq_along(splits_list))
+  )
+  
+  class(inner_rset) <- c("sliding_period", "rset", "tbl_df", "tbl", "data.frame")
   
   return(inner_rset)
 }
-
 ```
 
-
-Let’s apply it to just one spatial fold:
+Apply it to one spatial fold:
 
 ```{r}
-example_fold <- spatial_folds$splits[[1]] %>% analysis()
-inner_resamples <- create_grouped_rolling_origin(
+example_fold = spatial_folds$splits[[1]] %>% analysis()
+
+inner_resamples = create_grouped_rolling_origin(
   data = example_fold,
-  initial = 10,
+  initial = 8,
   assess = 2,
-  cumulative = TRUE
-)
+  cumulative = TRUE)
 ```
 
 ---
 
 # Step 3: Peek at the Splits Over Time
 
-Let’s **visualize the rolling time windows** per sensor.  
-Each plot will show which days are in the training vs assessment sets for each sensor.
+Let’s **visualize the rolling windows** per sensor.
+    
+Each plot shows which days were in train/test sets per sensor.
+
+Helper function:
 
 ```{r}
-# helper function
 view_split_groups_date <- function(all, train, val){
   bind_rows(
     all %>%
@@ -186,72 +199,65 @@ view_split_groups_date <- function(all, train, val){
       mutate(SOURCEID = "All Data", type = "all"),
     train %>%
       count(SOURCEID, Date) %>%
-      mutate(type = "train"),
+      mutate(type = "Train"),
     val %>%
       count(SOURCEID, Date) %>%
-      mutate(type = "val")
+      mutate(type = "Validation")
   )
 }
 ```
 
-Now we generate a **step-through plot** using `plotly`:
+Now we make a `plotly` interactive plot:
 
-```{r}
-
+```{r include = F}
 data = list(
-  inner_resamples$splits
-  ,1:length(inner_resamples$splits)
+  inner_resamples$splits,
+  1:length(inner_resamples$splits)
 ) %>% 
   pmap(~{
-    
-    # browser()
     view_split_groups_date(
-      temp_all
-      ,.x %>% analysis()
-      ,.x %>% assessment()
-    )   %>% 
+      example_fold %>% st_drop_geometry(),
+      .x %>% analysis(),
+      .x %>% assessment()
+    ) %>% 
       mutate(sample = str_glue("Sample_{.y}"))
-      
   }) %>%  
   reduce(bind_rows) %>% 
-  mutate(type_num = as.factor(type) %>% 
-           as.numeric()) %>%  
+  mutate(type_num = as.factor(type) %>% as.numeric()) %>%  
   mutate(text = str_glue("Sensor: {SOURCEID}\nDate: {Date}\nType: {type}"))
 
-library(crosstalk)
 data_sd = SharedData$new(data)
 
 bscols(
-  widths = c(4, 12)
-  ,crosstalk::filter_checkbox("id", "Inner Sliding Window Sample", data_sd, ~sample, inline = T, allLevels = F)
-  ,data_sd %>% 
+  widths = c(4, 12),
+  crosstalk::filter_checkbox(
+    "id", "Inner Sliding Window Sample", data_sd,
+    ~sample, inline = T, allLevels = F),
+  data_sd %>% 
     plot_ly(
-      x = ~Date,
-      y = ~SOURCEID,
-      z = ~type_num,
-      type = "heatmap",
-      text = ~text, hoverinfo = "text"
-      
+      x = ~Date, y = ~SOURCEID, z = ~type_num,
+      type = "heatmap", text = ~text, hoverinfo = "text"
     ) %>% 
     layout(
-      yaxis = list(title = "Sensor Locations")
-      ,xaxis = list(title = "") ) %>% 
+      yaxis = list(title = "Sensor Locations"), xaxis = list(title = "")) %>% 
     hide_colorbar()
 )
-
-
 ```
+
+Check it! Each inner sample (time samples) depicts sliding windows of train and validation sets respective for each sensor.
 
 ---
 
 # Why Bother?
 
-This might feel like a lot, but honestly:
+This might feel like a lot, but it’s one of those cases where **doing it right matters**:
 
-- Most tools only resample in time _or_ space — **not both**.
-- This avoids data leakage while giving you proper spatiotemporal CV.
-- It’s a flexible pattern: plug in whatever time window or group you want.
+- Most tools only resample in time _or_ space — **not both** (and def not when there's repeated measures)
+- This custom approach avoids data leakage in **both dimensions**
+- Great for **spatiotemporal interpolation and forecasting**
 
-You could even nest this inside `tidymodels::workflow_sets()` if you’re into that life.
+And: if you're tuning a model with `tune_grid()` or `workflow_map()`, **nesting this inside your outer spatial folds** helps ensure leakage doesn't sneak in during hyperparameter selection — especially with temporal dependencies in the data.
 
-Enjoy! 🧠🛰️📆
+So: split smart.  
+Model well.  
+Avoid leakage.  

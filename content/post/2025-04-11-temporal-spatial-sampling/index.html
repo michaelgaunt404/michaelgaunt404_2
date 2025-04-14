@@ -1,0 +1,224 @@
+---
+title: "5 Minute Tutorials: Guarding Against Spatial *and* Temporal Leakage"
+author: 'Mike Gaunt'
+date: '2025-04-11'
+slug: spatiotemporal-cv
+categories: ["R", "Spatiotemporal Modeling"]
+tags: ["spatial CV", "temporal CV", "rsample", "spatialsample", "custom resampling"]
+description: "A custom resampling strategy that prevents both spatial and temporal leakage — because modeling isn’t magic, it’s just well-split data."
+comments: yes
+image: ~
+math: ~
+license: ~
+hidden: no
+---
+
+<script src="{{< blogdown/postref >}}index_files/jquery/jquery.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/crosstalk/css/crosstalk.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/crosstalk/js/crosstalk.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index_files/plotly-binding/plotly.js"></script>
+<script src="{{< blogdown/postref >}}index_files/typedarray/typedarray.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/plotly-main/plotly-latest.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="{{< blogdown/postref >}}index_files/bootstrap-grid/bootstrap-grid.min.css" rel="stylesheet" />
+
+
+<div id="quick-overview" class="section level1">
+<h1>Quick Overview</h1>
+<p>Hey hey —</p>
+<p>Today’s 5-minute trick tackles a big gap I kept running into:</p>
+<p><strong>I needed to model something with both spatial structure <em>and</em> time dependencies</strong>, but nothing I found in R’s modeling universe would let me <strong>resample across both space and time</strong> <em>without leakage</em>.</p>
+<div id="whats-the-modeling-task" class="section level2">
+<h2>What’s the modeling task?</h2>
+<p>Let’s say you want to <strong>spatially interpolate predictions</strong> (i.e., predict at new locations) <strong><em>and</em> forecast in time</strong> (i.e., predict future values). Your model has to generalize both <em>in space</em> and <em>in time</em>.</p>
+<p>If you don’t split your data smartly — say you train your model on one time slice and evaluate on the same locations a few days later — you might <strong>leak information</strong> across your train/test sets and falsely inflate your model’s performance.</p>
+<p>Even worse, if you’re tuning a model and evaluating performance with leakage, you’re optimizing toward something that will crumble in production.</p>
+<p>In order to do this, I wrote my own function that integrates with and extends the tidymodels’ existing sampling framework<br />
+And yes, I’m going to share it 😎</p>
+<hr />
+</div>
+<div id="required-libraries" class="section level2">
+<h2>Required Libraries</h2>
+<pre class="r"><code>library(CAST)
+library(tidyverse)
+library(sp)
+library(sf)
+library(rsample)
+library(plotly)
+library(crosstalk)</code></pre>
+<hr />
+</div>
+</div>
+<div id="what-were-modeling" class="section level1">
+<h1>What We’re Modeling</h1>
+<p>We’re working with the <code>cookfarm</code> dataset from the <code>CAST</code> package.</p>
+<p>Each record is a repeated measurement (e.g., soil moisture) from one of many <strong>spatial sensor locations</strong> over time. So the dataset is <strong>spatiotemporal</strong>, with groupings by sensor.</p>
+<p>Here’s a peek:</p>
+<pre class="r"><code>data(&quot;cookfarm&quot;)
+glimpse(cookfarm)</code></pre>
+<pre><code>## Rows: 128,545
+## Columns: 17
+## $ SOURCEID    &lt;fct&gt; CAF357, CAF357, CAF357, CAF357, CAF357, CAF357, CAF357, CA…
+## $ VW          &lt;dbl&gt; 0.303, 0.328, 0.376, 0.350, 0.323, 0.297, 0.330, 0.375, 0.…
+## $ Easting     &lt;dbl&gt; 493828.1, 493828.1, 493828.1, 493828.1, 493828.1, 493828.1…
+## $ Northing    &lt;dbl&gt; 5181021, 5181021, 5181021, 5181021, 5181021, 5181021, 5181…
+## $ altitude    &lt;dbl&gt; -0.3, -0.6, -0.9, -1.2, -1.5, -0.3, -0.6, -0.9, -1.2, -1.5…
+## $ DEM         &lt;dbl&gt; 792.5756, 792.5756, 792.5756, 792.5756, 792.5756, 792.5756…
+## $ TWI         &lt;dbl&gt; 3.791253, 3.791253, 3.791253, 3.791253, 3.791253, 3.791253…
+## $ NDRE.M      &lt;dbl&gt; 0.08161208, 0.08161208, 0.08161208, 0.08161208, 0.08161208…
+## $ NDRE.Sd     &lt;dbl&gt; 0.2805182, 0.2805182, 0.2805182, 0.2805182, 0.2805182, 0.2…
+## $ Bt          &lt;dbl&gt; 0.0000, 0.0000, 0.0000, 0.0000, 0.0106, 0.0000, 0.0000, 0.…
+## $ BLD         &lt;dbl&gt; 1.22, 1.36, 1.48, 1.56, 1.60, 1.22, 1.36, 1.48, 1.56, 1.60…
+## $ Date        &lt;date&gt; 2010-01-01, 2010-01-01, 2010-01-01, 2010-01-01, 2010-01-0…
+## $ Precip_wrcc &lt;dbl&gt; 5.8, 5.8, 5.8, 5.8, 5.8, 6.9, 6.9, 6.9, 6.9, 6.9, 0.0, 0.0…
+## $ MaxT_wrcc   &lt;dbl&gt; 2.8, 2.8, 2.8, 2.8, 2.8, 6.1, 6.1, 6.1, 6.1, 6.1, 6.1, 6.1…
+## $ MinT_wrcc   &lt;dbl&gt; -3.3, -3.3, -3.3, -3.3, -3.3, 0.6, 0.6, 0.6, 0.6, 0.6, 0.0…
+## $ Precip_cum  &lt;dbl&gt; 5.8, 5.8, 5.8, 5.8, 5.8, 12.7, 12.7, 12.7, 12.7, 12.7, 12.…
+## $ cday        &lt;dbl&gt; 14611, 14611, 14611, 14611, 14611, 14612, 14612, 14612, 14…</code></pre>
+<p>Goals:</p>
+<ul>
+<li>Split the data <strong>spatially</strong> so no sensors (SOURCEIDs) appear in both train and test</li>
+<li>Then <strong>temporally</strong> within each spatial fold using a sliding window</li>
+</ul>
+<p>Leakage would allow the model to “peek” at test data by sharing sensors or future observations between train/test - which is bad!!!.</p>
+<hr />
+</div>
+<div id="step-1-spatial-folds" class="section level1">
+<h1>Step 1: Spatial Folds</h1>
+<p>We’ll take a slice of the data (two weeks in 2012 at one depth), and convert it to an <code>sf</code> object:</p>
+<pre class="r"><code>trainDat &lt;- cookfarm %&gt;%
+  filter(altitude == -0.3,
+         lubridate::year(Date) == 2012,
+         lubridate::week(Date) %in% 13:14) %&gt;%
+  mutate(Date = as.Date(Date)) %&gt;%
+  st_as_sf(coords = c(&quot;Easting&quot;, &quot;Northing&quot;), crs = 26911)</code></pre>
+<p>Now we split spatially so each fold has unique sensors (<code>SOURCEID</code>s).</p>
+<p>You could also use <code>spatial_clustering_cv()</code> from the <code>spatialsample</code> package — that’s a great option too.</p>
+<pre class="r"><code>spatial_folds &lt;- trainDat %&gt;%
+  group_vfold_cv(group = SOURCEID, v = 5)
+
+spatial_folds</code></pre>
+<pre><code>## # Group 5-fold cross-validation 
+## # A tibble: 5 × 2
+##   splits            id       
+##   &lt;list&gt;            &lt;chr&gt;    
+## 1 &lt;split [378/112]&gt; Resample1
+## 2 &lt;split [392/98]&gt;  Resample2
+## 3 &lt;split [402/88]&gt;  Resample3
+## 4 &lt;split [392/98]&gt;  Resample4
+## 5 &lt;split [396/94]&gt;  Resample5</code></pre>
+<p>Now we have training and validation folds that are <strong>mutually exclusive in space</strong>.</p>
+<p>Next up: <strong>time</strong>.</p>
+<hr />
+</div>
+<div id="step-2-rolling-origin-with-groups" class="section level1">
+<h1>Step 2: Rolling Origin… with Groups?!</h1>
+<p>Rolling origin resampling (<code>sliding_window()</code>, etc.) is great for time —<br />
+but it fails with grouped data, like multiple sensors.</p>
+<p>It also expects a singular time signal so it just slices the row indices, ignoring your groupings.</p>
+<p>So I wrote a helper that loops through each sensor group, applies rolling origin resampling, and merges the results:</p>
+<div id="create_grouped_rolling_origin" class="section level3">
+<h3><code>create_grouped_rolling_origin()</code>:</h3>
+<pre class="r"><code>create_grouped_rolling_origin &lt;- function(data, initial, assess, cumulative = TRUE, skip = 0) {
+  sensors &lt;- unique(data$SOURCEID)
+  splits_list &lt;- list()
+  i = 0
+  
+  for (sensor in sensors) {
+    i = i + 1
+    sensor_data &lt;- data %&gt;% 
+      filter(SOURCEID == sensor) %&gt;%
+      arrange(Date)
+
+    if (nrow(sensor_data) &gt;= (initial + assess)) {
+      ro &lt;- rolling_origin(sensor_data, 
+                           initial = initial, 
+                           assess = assess, 
+                           cumulative = cumulative, 
+                           skip = skip) %&gt;% 
+        mutate(sensor = sensor)
+
+      splits_list[[i]] = ro
+    }
+  }
+    
+  splits_list = splits_list %&gt;% 
+    reduce(bind_rows) %&gt;%  
+    group_by(id_1 = id) %&gt;% 
+    group_map(~{
+      temp_analysis = .x$splits %&gt;% 
+        map_df(~ analysis(.x))
+      
+      temp_assessment = .x$splits %&gt;% 
+        map_df(~ assessment(.x))
+      
+      combined_data &lt;- bind_rows(temp_analysis, temp_assessment)
+      n_analysis &lt;- nrow(temp_analysis)
+      
+      structure(
+        list(
+          data = combined_data,
+          in_id = 1:n_analysis,
+          out_id = (n_analysis + 1):nrow(combined_data)
+        ),
+        class = c(&quot;sliding_period_split&quot;, &quot;rsplit&quot;)
+      )
+    })
+  
+  inner_rset &lt;- rsample::new_rset(
+    splits = splits_list,
+    ids = paste0(&quot;Resample&quot;, seq_along(splits_list))
+  )
+  
+  class(inner_rset) &lt;- c(&quot;sliding_period&quot;, &quot;rset&quot;, &quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;)
+  
+  return(inner_rset)
+}</code></pre>
+<p>Apply it to one spatial fold:</p>
+<pre class="r"><code>example_fold = spatial_folds$splits[[1]] %&gt;% analysis()
+
+inner_resamples = create_grouped_rolling_origin(
+  data = example_fold,
+  initial = 8,
+  assess = 2,
+  cumulative = TRUE)</code></pre>
+<hr />
+</div>
+</div>
+<div id="step-3-peek-at-the-splits-over-time" class="section level1">
+<h1>Step 3: Peek at the Splits Over Time</h1>
+<p>Let’s <strong>visualize the rolling windows</strong> per sensor.</p>
+<p>Each plot shows which days were in train/test sets per sensor.</p>
+<p>Helper function:</p>
+<pre class="r"><code>view_split_groups_date &lt;- function(all, train, val){
+  bind_rows(
+    all %&gt;%
+      count(Date) %&gt;%
+      mutate(SOURCEID = &quot;All Data&quot;, type = &quot;all&quot;),
+    train %&gt;%
+      count(SOURCEID, Date) %&gt;%
+      mutate(type = &quot;Train&quot;),
+    val %&gt;%
+      count(SOURCEID, Date) %&gt;%
+      mutate(type = &quot;Validation&quot;)
+  )
+}</code></pre>
+<p>Now we make a <code>plotly</code> interactive plot:</p>
+<p>Check it! Each inner sample (time samples) depicts sliding windows of train and validation sets respective for each sensor.</p>
+<hr />
+</div>
+<div id="why-bother" class="section level1">
+<h1>Why Bother?</h1>
+<p>This might feel like a lot, but it’s one of those cases where <strong>doing it right matters</strong>:</p>
+<ul>
+<li>Most tools only resample in time <em>or</em> space — <strong>not both</strong> (and def not when there’s repeated measures)</li>
+<li>This custom approach avoids data leakage in <strong>both dimensions</strong></li>
+<li>Great for <strong>spatiotemporal interpolation and forecasting</strong></li>
+</ul>
+<p>And: if you’re tuning a model with <code>tune_grid()</code> or <code>workflow_map()</code>, <strong>nesting this inside your outer spatial folds</strong> helps ensure leakage doesn’t sneak in during hyperparameter selection — especially with temporal dependencies in the data.</p>
+<p>So: split smart.<br />
+Model well.<br />
+Avoid leakage.</p>
+</div>

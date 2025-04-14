@@ -6,7 +6,225 @@
         <description>Recent content on The Gauntlet: An R Blog</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
-        <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Fri, 11 Apr 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>5 Minute Tutorials: Guarding Against Spatial *and* Temporal Leakage</title>
+        <link>https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/</link>
+        <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+        
+        <guid>https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/</guid>
+        <description>
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/jquery/jquery.min.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/crosstalk/css/crosstalk.min.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/crosstalk/js/crosstalk.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/plotly-binding/plotly.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/typedarray/typedarray.min.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/plotly-htmlwidgets-css/plotly-htmlwidgets.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/plotly-main/plotly-latest.min.js&#34;&gt;&lt;/script&gt;
+&lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1&#34; /&gt;
+&lt;link href=&#34;https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/index_files/bootstrap-grid/bootstrap-grid.min.css&#34; rel=&#34;stylesheet&#34; /&gt;
+
+
+&lt;div id=&#34;quick-overview&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Quick Overview&lt;/h1&gt;
+&lt;p&gt;Hey hey —&lt;/p&gt;
+&lt;p&gt;Today’s 5-minute trick tackles a big gap I kept running into:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;I needed to model something with both spatial structure &lt;em&gt;and&lt;/em&gt; time dependencies&lt;/strong&gt;, but nothing I found in R’s modeling universe would let me &lt;strong&gt;resample across both space and time&lt;/strong&gt; &lt;em&gt;without leakage&lt;/em&gt;.&lt;/p&gt;
+&lt;div id=&#34;whats-the-modeling-task&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;What’s the modeling task?&lt;/h2&gt;
+&lt;p&gt;Let’s say you want to &lt;strong&gt;spatially interpolate predictions&lt;/strong&gt; (i.e., predict at new locations) &lt;strong&gt;&lt;em&gt;and&lt;/em&gt; forecast in time&lt;/strong&gt; (i.e., predict future values). Your model has to generalize both &lt;em&gt;in space&lt;/em&gt; and &lt;em&gt;in time&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;If you don’t split your data smartly — say you train your model on one time slice and evaluate on the same locations a few days later — you might &lt;strong&gt;leak information&lt;/strong&gt; across your train/test sets and falsely inflate your model’s performance.&lt;/p&gt;
+&lt;p&gt;Even worse, if you’re tuning a model and evaluating performance with leakage, you’re optimizing toward something that will crumble in production.&lt;/p&gt;
+&lt;p&gt;In order to do this, I wrote my own function that integrates with and extends the tidymodels’ existing sampling framework&lt;br /&gt;
+And yes, I’m going to share it 😎&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;required-libraries&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Required Libraries&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(CAST)
+library(tidyverse)
+library(sp)
+library(sf)
+library(rsample)
+library(plotly)
+library(crosstalk)&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;what-were-modeling&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;What We’re Modeling&lt;/h1&gt;
+&lt;p&gt;We’re working with the &lt;code&gt;cookfarm&lt;/code&gt; dataset from the &lt;code&gt;CAST&lt;/code&gt; package.&lt;/p&gt;
+&lt;p&gt;Each record is a repeated measurement (e.g., soil moisture) from one of many &lt;strong&gt;spatial sensor locations&lt;/strong&gt; over time. So the dataset is &lt;strong&gt;spatiotemporal&lt;/strong&gt;, with groupings by sensor.&lt;/p&gt;
+&lt;p&gt;Here’s a peek:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;cookfarm&amp;quot;)
+glimpse(cookfarm)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Rows: 128,545
+## Columns: 17
+## $ SOURCEID    &amp;lt;fct&amp;gt; CAF357, CAF357, CAF357, CAF357, CAF357, CAF357, CAF357, CA…
+## $ VW          &amp;lt;dbl&amp;gt; 0.303, 0.328, 0.376, 0.350, 0.323, 0.297, 0.330, 0.375, 0.…
+## $ Easting     &amp;lt;dbl&amp;gt; 493828.1, 493828.1, 493828.1, 493828.1, 493828.1, 493828.1…
+## $ Northing    &amp;lt;dbl&amp;gt; 5181021, 5181021, 5181021, 5181021, 5181021, 5181021, 5181…
+## $ altitude    &amp;lt;dbl&amp;gt; -0.3, -0.6, -0.9, -1.2, -1.5, -0.3, -0.6, -0.9, -1.2, -1.5…
+## $ DEM         &amp;lt;dbl&amp;gt; 792.5756, 792.5756, 792.5756, 792.5756, 792.5756, 792.5756…
+## $ TWI         &amp;lt;dbl&amp;gt; 3.791253, 3.791253, 3.791253, 3.791253, 3.791253, 3.791253…
+## $ NDRE.M      &amp;lt;dbl&amp;gt; 0.08161208, 0.08161208, 0.08161208, 0.08161208, 0.08161208…
+## $ NDRE.Sd     &amp;lt;dbl&amp;gt; 0.2805182, 0.2805182, 0.2805182, 0.2805182, 0.2805182, 0.2…
+## $ Bt          &amp;lt;dbl&amp;gt; 0.0000, 0.0000, 0.0000, 0.0000, 0.0106, 0.0000, 0.0000, 0.…
+## $ BLD         &amp;lt;dbl&amp;gt; 1.22, 1.36, 1.48, 1.56, 1.60, 1.22, 1.36, 1.48, 1.56, 1.60…
+## $ Date        &amp;lt;date&amp;gt; 2010-01-01, 2010-01-01, 2010-01-01, 2010-01-01, 2010-01-0…
+## $ Precip_wrcc &amp;lt;dbl&amp;gt; 5.8, 5.8, 5.8, 5.8, 5.8, 6.9, 6.9, 6.9, 6.9, 6.9, 0.0, 0.0…
+## $ MaxT_wrcc   &amp;lt;dbl&amp;gt; 2.8, 2.8, 2.8, 2.8, 2.8, 6.1, 6.1, 6.1, 6.1, 6.1, 6.1, 6.1…
+## $ MinT_wrcc   &amp;lt;dbl&amp;gt; -3.3, -3.3, -3.3, -3.3, -3.3, 0.6, 0.6, 0.6, 0.6, 0.6, 0.0…
+## $ Precip_cum  &amp;lt;dbl&amp;gt; 5.8, 5.8, 5.8, 5.8, 5.8, 12.7, 12.7, 12.7, 12.7, 12.7, 12.…
+## $ cday        &amp;lt;dbl&amp;gt; 14611, 14611, 14611, 14611, 14611, 14612, 14612, 14612, 14…&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Goals:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Split the data &lt;strong&gt;spatially&lt;/strong&gt; so no sensors (SOURCEIDs) appear in both train and test&lt;/li&gt;
+&lt;li&gt;Then &lt;strong&gt;temporally&lt;/strong&gt; within each spatial fold using a sliding window&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Leakage would allow the model to “peek” at test data by sharing sensors or future observations between train/test - which is bad!!!.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-1-spatial-folds&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Step 1: Spatial Folds&lt;/h1&gt;
+&lt;p&gt;We’ll take a slice of the data (two weeks in 2012 at one depth), and convert it to an &lt;code&gt;sf&lt;/code&gt; object:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;trainDat &amp;lt;- cookfarm %&amp;gt;%
+  filter(altitude == -0.3,
+         lubridate::year(Date) == 2012,
+         lubridate::week(Date) %in% 13:14) %&amp;gt;%
+  mutate(Date = as.Date(Date)) %&amp;gt;%
+  st_as_sf(coords = c(&amp;quot;Easting&amp;quot;, &amp;quot;Northing&amp;quot;), crs = 26911)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we split spatially so each fold has unique sensors (&lt;code&gt;SOURCEID&lt;/code&gt;s).&lt;/p&gt;
+&lt;p&gt;You could also use &lt;code&gt;spatial_clustering_cv()&lt;/code&gt; from the &lt;code&gt;spatialsample&lt;/code&gt; package — that’s a great option too.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;spatial_folds &amp;lt;- trainDat %&amp;gt;%
+  group_vfold_cv(group = SOURCEID, v = 5)
+
+spatial_folds&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # Group 5-fold cross-validation 
+## # A tibble: 5 × 2
+##   splits            id       
+##   &amp;lt;list&amp;gt;            &amp;lt;chr&amp;gt;    
+## 1 &amp;lt;split [378/112]&amp;gt; Resample1
+## 2 &amp;lt;split [392/98]&amp;gt;  Resample2
+## 3 &amp;lt;split [402/88]&amp;gt;  Resample3
+## 4 &amp;lt;split [392/98]&amp;gt;  Resample4
+## 5 &amp;lt;split [396/94]&amp;gt;  Resample5&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we have training and validation folds that are &lt;strong&gt;mutually exclusive in space&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Next up: &lt;strong&gt;time&lt;/strong&gt;.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-2-rolling-origin-with-groups&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Step 2: Rolling Origin… with Groups?!&lt;/h1&gt;
+&lt;p&gt;Rolling origin resampling (&lt;code&gt;sliding_window()&lt;/code&gt;, etc.) is great for time —&lt;br /&gt;
+but it fails with grouped data, like multiple sensors.&lt;/p&gt;
+&lt;p&gt;It also expects a singular time signal so it just slices the row indices, ignoring your groupings.&lt;/p&gt;
+&lt;p&gt;So I wrote a helper that loops through each sensor group, applies rolling origin resampling, and merges the results:&lt;/p&gt;
+&lt;div id=&#34;create_grouped_rolling_origin&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;&lt;code&gt;create_grouped_rolling_origin()&lt;/code&gt;:&lt;/h3&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;create_grouped_rolling_origin &amp;lt;- function(data, initial, assess, cumulative = TRUE, skip = 0) {
+  sensors &amp;lt;- unique(data$SOURCEID)
+  splits_list &amp;lt;- list()
+  i = 0
+  
+  for (sensor in sensors) {
+    i = i + 1
+    sensor_data &amp;lt;- data %&amp;gt;% 
+      filter(SOURCEID == sensor) %&amp;gt;%
+      arrange(Date)
+
+    if (nrow(sensor_data) &amp;gt;= (initial + assess)) {
+      ro &amp;lt;- rolling_origin(sensor_data, 
+                           initial = initial, 
+                           assess = assess, 
+                           cumulative = cumulative, 
+                           skip = skip) %&amp;gt;% 
+        mutate(sensor = sensor)
+
+      splits_list[[i]] = ro
+    }
+  }
+    
+  splits_list = splits_list %&amp;gt;% 
+    reduce(bind_rows) %&amp;gt;%  
+    group_by(id_1 = id) %&amp;gt;% 
+    group_map(~{
+      temp_analysis = .x$splits %&amp;gt;% 
+        map_df(~ analysis(.x))
+      
+      temp_assessment = .x$splits %&amp;gt;% 
+        map_df(~ assessment(.x))
+      
+      combined_data &amp;lt;- bind_rows(temp_analysis, temp_assessment)
+      n_analysis &amp;lt;- nrow(temp_analysis)
+      
+      structure(
+        list(
+          data = combined_data,
+          in_id = 1:n_analysis,
+          out_id = (n_analysis + 1):nrow(combined_data)
+        ),
+        class = c(&amp;quot;sliding_period_split&amp;quot;, &amp;quot;rsplit&amp;quot;)
+      )
+    })
+  
+  inner_rset &amp;lt;- rsample::new_rset(
+    splits = splits_list,
+    ids = paste0(&amp;quot;Resample&amp;quot;, seq_along(splits_list))
+  )
+  
+  class(inner_rset) &amp;lt;- c(&amp;quot;sliding_period&amp;quot;, &amp;quot;rset&amp;quot;, &amp;quot;tbl_df&amp;quot;, &amp;quot;tbl&amp;quot;, &amp;quot;data.frame&amp;quot;)
+  
+  return(inner_rset)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Apply it to one spatial fold:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;example_fold = spatial_folds$splits[[1]] %&amp;gt;% analysis()
+
+inner_resamples = create_grouped_rolling_origin(
+  data = example_fold,
+  initial = 8,
+  assess = 2,
+  cumulative = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-3-peek-at-the-splits-over-time&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Step 3: Peek at the Splits Over Time&lt;/h1&gt;
+&lt;p&gt;Let’s &lt;strong&gt;visualize the rolling windows&lt;/strong&gt; per sensor.&lt;/p&gt;
+&lt;p&gt;Each plot shows which days were in train/test sets per sensor.&lt;/p&gt;
+&lt;p&gt;Helper function:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;view_split_groups_date &amp;lt;- function(all, train, val){
+  bind_rows(
+    all %&amp;gt;%
+      count(Date) %&amp;gt;%
+      mutate(SOURCEID = &amp;quot;All Data&amp;quot;, type = &amp;quot;all&amp;quot;),
+    train %&amp;gt;%
+      count(SOURCEID, Date) %&amp;gt;%
+      mutate(type = &amp;quot;Train&amp;quot;),
+    val %&amp;gt;%
+      count(SOURCEID, Date) %&amp;gt;%
+      mutate(type = &amp;quot;Validation&amp;quot;)
+  )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we make a &lt;code&gt;plotly&lt;/code&gt; interactive plot:&lt;/p&gt;
+&lt;p&gt;Check it! Each inner sample (time samples) depicts sliding windows of train and validation sets respective for each sensor.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;why-bother&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Why Bother?&lt;/h1&gt;
+&lt;p&gt;This might feel like a lot, but it’s one of those cases where &lt;strong&gt;doing it right matters&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Most tools only resample in time &lt;em&gt;or&lt;/em&gt; space — &lt;strong&gt;not both&lt;/strong&gt; (and def not when there’s repeated measures)&lt;/li&gt;
+&lt;li&gt;This custom approach avoids data leakage in &lt;strong&gt;both dimensions&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Great for &lt;strong&gt;spatiotemporal interpolation and forecasting&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And: if you’re tuning a model with &lt;code&gt;tune_grid()&lt;/code&gt; or &lt;code&gt;workflow_map()&lt;/code&gt;, &lt;strong&gt;nesting this inside your outer spatial folds&lt;/strong&gt; helps ensure leakage doesn’t sneak in during hyperparameter selection — especially with temporal dependencies in the data.&lt;/p&gt;
+&lt;p&gt;So: split smart.&lt;br /&gt;
+Model well.&lt;br /&gt;
+Avoid leakage.&lt;/p&gt;
+&lt;/div&gt;
+</description>
+        </item>
+        <item>
         <title>5 Minute Tutorials: Using Protocol Buffers in R</title>
         <link>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</link>
         <pubDate>Tue, 28 Jan 2025 00:00:00 +0000</pubDate>
@@ -305,6 +523,258 @@ I want to quickly highlight the benefits of using prefixes like &lt;code&gt;scri
 &lt;p&gt;The way I use these prefixes is as follows: every code file starts off as a &lt;strong&gt;dev&lt;/strong&gt; script. If I’m initially building something out, I save it with the &lt;code&gt;dev_&lt;/code&gt; prefix.&lt;/p&gt;
 &lt;p&gt;Once a script reaches a stage where it’s fairly formalized and unlikely to change, I save it with the &lt;code&gt;script_&lt;/code&gt; prefix - denoting that it is now “stable”.&lt;/p&gt;
 &lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+        </item>
+        <item>
+        <title>5 Minute Tutorials: Fast Data Loading</title>
+        <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</link>
+        <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+        
+        <guid>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</guid>
+        <description>
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/core-js/shim.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/react/react.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/react/react-dom.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/reactwidget/react-tools.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/reactable/reactable.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/index_files/reactable-binding/reactable.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;div id=&#34;quick-overview&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Quick Overview&lt;/h1&gt;
+&lt;p&gt;Hi hi!&lt;br /&gt;
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.&lt;/p&gt;
+&lt;div id=&#34;what-are-we-looking-at-today&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;What are we looking at today&lt;/h2&gt;
+&lt;p&gt;I wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of &lt;code&gt;write.csv()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Specifically, using:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;qs objects&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rds objects&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;data.table CSVs&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;base R CSVs&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/traversc/qs?tab=readme-ov-file#features&#34;&gt;Link to qs github page&lt;/a&gt; - the features table provides a really great way to compare the main methods we will be looking at.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;how&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;How&lt;/h2&gt;
+&lt;p&gt;We are going to make basic script that creates a pretty large data set and we will use different methods to save and reload it and compare the time it takes to perform this action and the resulting file size of the file that is created.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;what-you-need&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;What you need&lt;/h2&gt;
+&lt;p&gt;Libraries:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(qs)
+library(data.table)
+library(readr)
+library(tictoc)
+library(tidyverse)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Custom functions:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tictoc_seconds = function(toc_object){
+  seconds = toc_object[2]-toc_object[1]
+  return(seconds)
+}
+
+save_and_read_data &amp;lt;- function(extension
+                               ,data
+                               ,dir) {
+  tictoc::tic()
+  
+  file &amp;lt;- here::here(dir, paste0(&amp;quot;myfile.&amp;quot;, extension))
+  
+  if (extension == &amp;quot;qs&amp;quot;) {
+    qsave(data, file)
+    df2 &amp;lt;- qread(file)
+  } else if (extension == &amp;quot;rds&amp;quot;) {
+    readr::write_rds(data, file)
+    df2 &amp;lt;- readr::read_rds(file)
+  } else if (extension == &amp;quot;rds&amp;quot;) {
+    write_rds(data, file)
+    df2 &amp;lt;- read_rds(file)
+  } else if (extension == &amp;quot;dt&amp;quot;) {
+    data.table::fwrite(data, file)
+    df2 &amp;lt;- data.table::fread(file)
+  } else if (extension == &amp;quot;arrow&amp;quot;) {
+    arrow::write_feather(data, file)
+    df2 &amp;lt;- arrow::read_feather(file)
+  } else if (extension == &amp;quot;parquet&amp;quot;) {
+    arrow::write_parquet(data, file)
+    df2 &amp;lt;- arrow::read_parquet(file)
+  } else if (extension == &amp;quot;csv&amp;quot;) {
+    write.csv2(data, file)
+    df2 &amp;lt;- read.csv2(file)
+  } else {
+    stop(&amp;quot;Unsupported file extension. Please use &amp;#39;qs&amp;#39; or &amp;#39;rds&amp;#39;.&amp;quot;)
+  }
+  
+  time_elapsed = tictoc::toc(quiet = T)
+  time_elapsed_seconds &amp;lt;- tictoc_seconds(as.numeric(time_elapsed))
+  file_size &amp;lt;- file.size(file)
+  
+  return(
+    data.frame(
+      extension = extension
+      ,time_elapsed = round(time_elapsed_seconds, 2)
+      ,size = file_size)
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;base-data&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Base Data&lt;/h2&gt;
+&lt;p&gt;The code below makes the datafame that we will use for this tutorial.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;set.seed(123)
+
+length_of_dataframe &amp;lt;- 5e6
+
+data &amp;lt;- data.frame(
+  x = seq(1, length_of_dataframe)
+  ,y = 2 * seq(1, length_of_dataframe) + rnorm(length_of_dataframe, mean = 0, sd = length_of_dataframe*.2)
+  ,z = sample(letters, length_of_dataframe, replace = T)
+) %&amp;gt;% 
+  mutate(model = rep(c(&amp;quot;model_1&amp;quot;, &amp;quot;model_2&amp;quot;, &amp;quot;model_3&amp;quot;, &amp;quot;model_4&amp;quot;), length_of_dataframe/4))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;basic-data-storage&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Basic Data Storage&lt;/h2&gt;
+&lt;p&gt;Here we use each method to store the basic dataframe that we made above.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tempdir = tempdir()
+
+df_bench = c(&amp;quot;qs&amp;quot;, &amp;quot;rds&amp;quot;, &amp;quot;dt&amp;quot;, &amp;quot;arrow&amp;quot;, &amp;quot;parquet&amp;quot;, &amp;quot;csv&amp;quot;) %&amp;gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = data
+    ,dir = tempdir)) %&amp;gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And here is the comparison of how fast each method performed the action and the size of the resulting saved data file.&lt;/p&gt;
+&lt;p&gt;We benchmark all methods and metrics to &lt;code&gt;qs&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;reactable html-widget html-fill-item&#34; id=&#34;htmlwidget-1&#34; style=&#34;width:auto;height:auto;&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;extension&#34;:[&#34;qs&#34;,&#34;rds&#34;,&#34;dt&#34;,&#34;arrow&#34;,&#34;parquet&#34;,&#34;csv&#34;],&#34;time_elapsed&#34;:[1.57,2.19,0.96,1.21,0.93,48.11],&#34;size&#34;:[38463456,180000215,178533835,105197778,67553720,247422781],&#34;time_adj&#34;:[1,1.4,0.6,0.8,0.6,30.6],&#34;size_adj&#34;:[1,4.7,4.6,2.7,1.8,6.4]},&#34;columns&#34;:[{&#34;id&#34;:&#34;extension&#34;,&#34;name&#34;:&#34;extension&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;time_elapsed&#34;,&#34;name&#34;:&#34;time_elapsed&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size&#34;,&#34;name&#34;:&#34;size&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;time_adj&#34;,&#34;name&#34;:&#34;time_adj&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size_adj&#34;,&#34;name&#34;:&#34;size_adj&#34;,&#34;type&#34;:&#34;numeric&#34;}],&#34;dataKey&#34;:&#34;53447bacd5b1a902a9fc050f3395669d&#34;},&#34;children&#34;:[]},&#34;class&#34;:&#34;reactR_markup&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;p&gt;Few points of interest:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Using &lt;code&gt;write.csv&lt;/code&gt; is clearly antiquated, save yourself file storage and time and stop using it.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;data.tables&lt;/code&gt; is about as fast as &lt;code&gt;arrow&lt;/code&gt; but the resulting file is rather large - +4x larger!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id=&#34;storing-nested-objects&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Storing Nested Objects&lt;/h2&gt;
+&lt;p&gt;In this section, we use each method to store more complex nested objects.&lt;/p&gt;
+&lt;p&gt;I’m not going to explain what they are here in detail but TLDR; you can jam what you normally be separate R objects into a singular object and then save them.&lt;/p&gt;
+&lt;p&gt;They are very useful when making derivative items from a &lt;code&gt;main&lt;/code&gt; object and then keeping them all together as a unit.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#this object has an attribute that holds model summaries
+model_object = data %&amp;gt;% 
+  group_by(model) %&amp;gt;% 
+  nest() %&amp;gt;% 
+  mutate(mod_lm = map(data, ~lm(y~x, data = .x) %&amp;gt;% summary())) %&amp;gt;% 
+  mutate(mod_aic = map(mod_lm, ~.x$r.squared))
+
+#this object just has nested data with no special objects
+nested_data_only = model_object %&amp;gt;% 
+  select(!c(mod_lm))
+
+print(model_object)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 4 × 4
+## # Groups:   model [4]
+##   model   data                     mod_lm     mod_aic  
+##   &amp;lt;chr&amp;gt;   &amp;lt;list&amp;gt;                   &amp;lt;list&amp;gt;     &amp;lt;list&amp;gt;   
+## 1 model_1 &amp;lt;tibble [1,250,000 × 3]&amp;gt; &amp;lt;smmry.lm&amp;gt; &amp;lt;dbl [1]&amp;gt;
+## 2 model_2 &amp;lt;tibble [1,250,000 × 3]&amp;gt; &amp;lt;smmry.lm&amp;gt; &amp;lt;dbl [1]&amp;gt;
+## 3 model_3 &amp;lt;tibble [1,250,000 × 3]&amp;gt; &amp;lt;smmry.lm&amp;gt; &amp;lt;dbl [1]&amp;gt;
+## 4 model_4 &amp;lt;tibble [1,250,000 × 3]&amp;gt; &amp;lt;smmry.lm&amp;gt; &amp;lt;dbl [1]&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;nested-data-only-objects&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Nested Data-Only Objects&lt;/h3&gt;
+&lt;p&gt;We can apply any method here besides the basic &lt;code&gt;write.csv2()&lt;/code&gt; function.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tempdir = tempdir()
+
+df_bench = c(&amp;quot;qs&amp;quot;, &amp;quot;rds&amp;quot;, &amp;quot;arrow&amp;quot;, &amp;quot;parquet&amp;quot;) %&amp;gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %&amp;gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And to compare each method.&lt;/p&gt;
+&lt;div class=&#34;reactable html-widget html-fill-item&#34; id=&#34;htmlwidget-2&#34; style=&#34;width:auto;height:auto;&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-2&#34;&gt;{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;extension&#34;:[&#34;qs&#34;,&#34;rds&#34;,&#34;arrow&#34;,&#34;parquet&#34;],&#34;time_elapsed&#34;:[0.64,1.05,0.39,0.67],&#34;size&#34;:[37123184,105001438,85007666,64015003],&#34;time_adj&#34;:[1,1.6,0.6,1],&#34;size_adj&#34;:[1,2.8,2.3,1.7]},&#34;columns&#34;:[{&#34;id&#34;:&#34;extension&#34;,&#34;name&#34;:&#34;extension&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;time_elapsed&#34;,&#34;name&#34;:&#34;time_elapsed&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size&#34;,&#34;name&#34;:&#34;size&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;time_adj&#34;,&#34;name&#34;:&#34;time_adj&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size_adj&#34;,&#34;name&#34;:&#34;size_adj&#34;,&#34;type&#34;:&#34;numeric&#34;}],&#34;dataKey&#34;:&#34;c84b3328ce6c4eacb9d65142cd9fd48f&#34;},&#34;children&#34;:[]},&#34;class&#34;:&#34;reactR_markup&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;div id=&#34;nested-objects-with-special-attribute&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Nested Objects with Special Attribute&lt;/h3&gt;
+&lt;p&gt;In this case we perform a common modeling workflow on the data we created above - notice the model object contains:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;original data&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;lm summary objects&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AIC objects&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can only apply &lt;code&gt;qs&lt;/code&gt; and &lt;code&gt;rds&lt;/code&gt; methods to save model objects.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tempdir = tempdir()
+
+df_bench = c(&amp;quot;qs&amp;quot;, &amp;quot;rds&amp;quot;) %&amp;gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = nested_data_only
+    ,dir = tempdir)) %&amp;gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And to compare each method again.&lt;/p&gt;
+&lt;div class=&#34;reactable html-widget html-fill-item&#34; id=&#34;htmlwidget-3&#34; style=&#34;width:auto;height:auto;&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-3&#34;&gt;{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;extension&#34;:[&#34;qs&#34;,&#34;rds&#34;],&#34;time_elapsed&#34;:[0.72,1.03],&#34;size&#34;:[37123184,105001438],&#34;time_adj&#34;:[1,1.4],&#34;size_adj&#34;:[1,2.8]},&#34;columns&#34;:[{&#34;id&#34;:&#34;extension&#34;,&#34;name&#34;:&#34;extension&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;time_elapsed&#34;,&#34;name&#34;:&#34;time_elapsed&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size&#34;,&#34;name&#34;:&#34;size&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;time_adj&#34;,&#34;name&#34;:&#34;time_adj&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size_adj&#34;,&#34;name&#34;:&#34;size_adj&#34;,&#34;type&#34;:&#34;numeric&#34;}],&#34;dataKey&#34;:&#34;f1c06a0fcf5111aa33db8e6f49c1be07&#34;},&#34;children&#34;:[]},&#34;class&#34;:&#34;reactR_markup&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;p&gt;WOW! &lt;code&gt;qs&lt;/code&gt; really takes the cake! I know what I’m using from here on out.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;spatial-objects&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Spatial Objects&lt;/h2&gt;
+&lt;p&gt;Lastly, we’re going to take a look at saving spatial data still in a spatial format.&lt;/p&gt;
+&lt;p&gt;Turns out that, like the lm nested dataframe above, arrow and parquet file types can store GIS objects.&lt;/p&gt;
+&lt;p&gt;This isn’t a big deal as spatial object can be converted to a non-spatial object with the geometry defined via WKT and then saved with &lt;code&gt;arrow&lt;/code&gt; and &lt;code&gt;parquet&lt;/code&gt;…. dealers choice!&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(mapview)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;breweries_big = breweries %&amp;gt;% 
+  sample_n(size = 500, replace = T)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tempdir = tempdir()
+
+df_bench = c(&amp;quot;qs&amp;quot;, &amp;quot;rds&amp;quot;) %&amp;gt;% 
+  map_df(~save_and_read_data(
+    extension = .x
+    ,data = breweries_big
+    ,dir = tempdir)) %&amp;gt;% 
+  mutate(
+    time_adj = round(time_elapsed/time_elapsed[1], 1)
+    ,size_adj = round(size/size[1], 1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion
+
+## Warning in tictoc_seconds(as.numeric(time_elapsed)): NAs introduced by coercion&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And to compare each method again.&lt;/p&gt;
+&lt;div class=&#34;reactable html-widget html-fill-item&#34; id=&#34;htmlwidget-4&#34; style=&#34;width:auto;height:auto;&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-4&#34;&gt;{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;extension&#34;:[&#34;qs&#34;,&#34;rds&#34;],&#34;time_elapsed&#34;:[0.02,0.02],&#34;size&#34;:[16628,107782],&#34;time_adj&#34;:[1,1],&#34;size_adj&#34;:[1,6.5]},&#34;columns&#34;:[{&#34;id&#34;:&#34;extension&#34;,&#34;name&#34;:&#34;extension&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;time_elapsed&#34;,&#34;name&#34;:&#34;time_elapsed&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size&#34;,&#34;name&#34;:&#34;size&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;time_adj&#34;,&#34;name&#34;:&#34;time_adj&#34;,&#34;type&#34;:&#34;numeric&#34;},{&#34;id&#34;:&#34;size_adj&#34;,&#34;name&#34;:&#34;size_adj&#34;,&#34;type&#34;:&#34;numeric&#34;}],&#34;dataKey&#34;:&#34;61d020f2e3f67068d380924f4c54fea5&#34;},&#34;children&#34;:[]},&#34;class&#34;:&#34;reactR_markup&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;div id=&#34;wrap-up&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Wrap Up&lt;/h2&gt;
+&lt;p&gt;Looks like your best bet is going to be &lt;code&gt;qs&lt;/code&gt; or &lt;code&gt;arrow&lt;/code&gt; - balancing time with storage space when you make that decision.&lt;/p&gt;
+&lt;p&gt;If you have more complex objects with different objects nested in attributes or spatial objects you will be required to use &lt;code&gt;qs&lt;/code&gt;.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 </description>

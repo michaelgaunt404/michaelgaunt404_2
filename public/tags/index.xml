@@ -6,7 +6,52 @@
     <description>Recent content in Tags on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 11 Apr 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>custom resampling</title>
+      <link>https://mikegaunt404.netlify.app/tags/custom-resampling/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/custom-resampling/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rsample</title>
+      <link>https://mikegaunt404.netlify.app/tags/rsample/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/rsample/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>spatial CV</title>
+      <link>https://mikegaunt404.netlify.app/tags/spatial-cv/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/spatial-cv/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>spatialsample</title>
+      <link>https://mikegaunt404.netlify.app/tags/spatialsample/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/spatialsample/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>temporal CV</title>
+      <link>https://mikegaunt404.netlify.app/tags/temporal-cv/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/temporal-cv/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>5Min Tutorials</title>
       <link>https://mikegaunt404.netlify.app/tags/5min-tutorials/</link>
@@ -58,6 +103,15 @@
       <pubDate>Wed, 02 Oct 2024 00:00:00 +0000</pubDate>
       
       <guid>https://mikegaunt404.netlify.app/tags/vectorization/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>data storage</title>
+      <link>https://mikegaunt404.netlify.app/tags/data-storage/</link>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/tags/data-storage/</guid>
       <description></description>
     </item>
     

@@ -6,7 +6,19 @@
     <description>Recent content in R on The Gauntlet: An R Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 11 Apr 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://mikegaunt404.netlify.app/categories/r/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5 Minute Tutorials: Guarding Against Spatial *and* Temporal Leakage</title>
+      <link>https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/</link>
+      <pubDate>Fri, 11 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2025/04/11/spatiotemporal-cv/</guid>
+      <description>Quick OverviewHey hey —
+Today’s 5-minute trick tackles a big gap I kept running into:
+I needed to model something with both spatial structure and time dependencies, but nothing I found in R’s modeling universe would let me resample across both space and time without leakage.
+What’s the modeling task?Let’s say you want to spatially interpolate predictions (i.e., predict at new locations) and forecast in time (i.</description>
+    </item>
+    
     <item>
       <title>5 Minute Tutorials: Using Protocol Buffers in R</title>
       <link>https://mikegaunt404.netlify.app/2025/01/28/quickie-protobuf/</link>
@@ -26,6 +38,19 @@ What are Protocol Buffers?Protocol Buffers (protobufs) are a language-neutral, 
       <guid>https://mikegaunt404.netlify.app/2024/10/02/clean-structured-code/</guid>
       <description>IntroductionThis vignette explains why using a consistent script structure and metadata format is essential for collaboration, efficiency, and reproducibility in R projects. By following a standardized template, you ensure that anyone using your scripts can quickly understand what the script does, who created it, and any specific requirements needed to run it.
 By the end of this vignette, you’ll be familiar with a script template that helps organize code effectively and facilitates rapid development.</description>
+    </item>
+    
+    <item>
+      <title>5 Minute Tutorials: Fast Data Loading</title>
+      <link>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</link>
+      <pubDate>Thu, 21 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mikegaunt404.netlify.app/2023/12/21/quickie-fast-data-loading/</guid>
+      <description>Quick OverviewHi hi!
+This is intended to be a very quick tutorial highlighting bite-sizeable and really helpful R tips.
+What are we looking at todayI wanted to share some really fast, efficient, and extremely useful data storage methods that extend far beyond the capabilities of write.csv().
+Specifically, using:
+qs objectsrds objectsdata.table CSVsbase R CSVsLink to qs github page - the features table provides a really great way to compare the main methods we will be looking at.</description>
     </item>
     
     <item>
